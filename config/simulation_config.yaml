@@ -1,0 +1,44 @@
+# Sod激波管CFD仿真配置文件
+# 依据: Build文档 §3.1, §2.4
+
+# 网格参数 (Build §5.1)
+mesh:
+  n_points: 100          # 网格节点数 (推荐: 100, 200, 400)
+  x_left: 0.0            # 左边界坐标
+  x_right: 1.0           # 右边界坐标
+
+# 物理参数 (Build §2.1, §2.2)
+physics:
+  gamma: 1.4             # 比热比 (理想气体)
+  diaphragm_pos: 0.5     # 隔膜位置
+  left_state:
+    rho: 1.0
+    u: 0.0
+    p: 1.0
+  right_state:
+    rho: 0.125
+    u: 0.0
+    p: 0.1
+
+# 仿真参数 (Build §2.4, §4.4)
+simulation:
+  t_final: 0.2           # 仿真终止时间
+  cfl: 0.8               # CFL数 (推荐: 0.8-0.95)
+
+# 数值格式 (Build §4.2)
+schemes:
+  - lax_friedrichs       # FDM-1: Lax-Friedrichs (一阶)
+  - lax_wendroff         # FDM-2: Lax-Wendroff (二阶)
+  - macormack            # FDM-3: MacCormack (二阶)
+  - upwind               # FDM-4: 一阶迎风
+  - rusanov              # FDM-5: Rusanov (局部Lax-Friedrichs)
+  - godunov              # FDM-6: Godunov (精确Riemann求解器)
+  - roe                  # FDM-7: Roe (近似Riemann求解器)
+  - hllc                 # FDM-8: HLLC (恢复接触间断)
+
+# 输出配置 (Build §5.7, §5.8)
+output:
+  data_dir: results/data
+  exact_dir: results/exact
+  figures_dir: results/figures
+  error_report: results/error_report.csv

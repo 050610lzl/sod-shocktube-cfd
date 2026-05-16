@@ -1,0 +1,161 @@
+name: CI - Sod Shock Tube CFD
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: |
+          python -m pytest tests/ -v --tb=short --junitxml=test-results.xml
+
+      - name: Run single scheme validation (upwind)
+        run: |
+          python run_simulation.py --n_points 100 --cfl 0.8 --scheme upwind
+
+      - name: Run CFL stability check
+        run: |
+          python -c "
+          import sys, numpy as np
+          sys.path.insert(0, '.')
+          from src.mesh_generator import generate_mesh
+          from src.flow_initializer import initialize_flow
+          from src.fd_schemes import upwind_step
+          from src.boundary_handler import apply_boundary_condition
+          from src.time_marcher import compute_dt
+          from src.exact_solver import sod_exact_solution
+
+          x, dx = generate_mesh(n_points=100)
+          U = initialize_flow(x)
+          dt = compute_dt(U, dx, cfl=0.8)
+          U_new = upwind_step(U, dx, dt)
+
+          rho = U_new[:, 0]
+          u = U_new[:, 1] / rho
+          p = (1.4 - 1.0) * (U_new[:, 2] - 0.5 * U_new[:, 1]**2 / rho)
+
+          assert np.all(rho > 0), 'Negative density detected!'
+          assert np.all(p > 0), 'Negative pressure detected!'
+          assert np.max(u) < 1.0, 'Unphysical velocity detected!'
+          print('TVD property check: PASSED')
+          print(f'rho range: [{np.min(rho):.4f}, {np.max(rho):.4f}]')
+          print(f'u max: {np.max(u):.4f}')
+          print(f'p range: [{np.min(p):.4f}, {np.max(p):.4f}]')
+          "
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-py${{ matrix.python-version }}
+          path: test-results.xml
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linting tools
+        run: |
+          pip install flake8
+
+      - name: Run flake8 linting
+        run: |
+          flake8 src/ --max-line-length=120 --ignore=E501,W503
+
+  integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run all schemes integration test
+        run: |
+          python -c "
+          import sys, numpy as np
+          sys.path.insert(0, '.')
+          from src.mesh_generator import generate_mesh
+          from src.flow_initializer import initialize_flow
+          from src.boundary_handler import apply_boundary_condition
+          from src.time_marcher import compute_dt
+          from src.fd_schemes import (
+              lax_friedrichs_step, lax_wendroff_step, macormack_step, upwind_step,
+              rusanov_step, godunov_step, roe_step, hllc_step, tvd_minmod_step
+          )
+
+          schemes = {
+              'lax_friedrichs': lax_friedrichs_step,
+              'lax_wendroff': lax_wendroff_step,
+              'macormack': macormack_step,
+              'upwind': upwind_step,
+              'rusanov': rusanov_step,
+              'godunov': godunov_step,
+              'roe': roe_step,
+              'hllc': hllc_step,
+              'tvd_minmod': tvd_minmod_step,
+          }
+
+          x, dx = generate_mesh(n_points=100)
+          for name, func in schemes.items():
+              U = initialize_flow(x)
+              t, t_final = 0.0, 0.2
+              steps = 0
+              while t < t_final:
+                  dt = compute_dt(U, dx, cfl=0.8)
+                  if t + dt > t_final:
+                      dt = t_final - t
+                  U = func(U, dx, dt)
+                  U = apply_boundary_condition(U)
+                  t += dt
+                  steps += 1
+              rho = U[:, 0]
+              p = (1.4 - 1.0) * (U[:, 2] - 0.5 * U[:, 1]**2 / rho)
+              assert np.all(rho > 0), f'{name}: negative density!'
+              assert np.all(p > 0), f'{name}: negative pressure!'
+              print(f'{name}: {steps} steps, PASSED')
+
+          print('All 9 schemes integration test: PASSED')
+          "
