@@ -7,7 +7,6 @@
 文献: Laney (1998) [3], OneFlow-CFD [4]
 """
 
-import numpy as np
 
 
 def apply_boundary_condition(U):

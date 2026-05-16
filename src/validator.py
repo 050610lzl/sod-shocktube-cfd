@@ -8,11 +8,10 @@
 """
 
 import os
-import datetime
-import numpy as np
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+matplotlib.use('Agg')  # noqa: E402
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
 
 
 def compute_errors(U_num, rho_exact, u_exact, p_exact):
@@ -38,8 +37,8 @@ def compute_errors(U_num, rho_exact, u_exact, p_exact):
 
     errors = {}
     for name, num_val, exact_val in [('rho', rho_num, rho_exact),
-                                       ('u', u_num, u_exact),
-                                       ('p', p_num, p_exact)]:
+                                     ('u', u_num, u_exact),
+                                     ('p', p_num, p_exact)]:
         diff = num_val - exact_val
         l1 = np.sum(np.abs(diff)) * dx
         l2 = np.sqrt(np.sum(diff ** 2) * dx)
@@ -164,7 +163,8 @@ def generate_comparison_plots(x, U_num, rho_exact, u_exact, p_exact,
     _self_check_plot(fig, axes, scheme_name)
 
     if timestamp:
-        filepath = os.path.join(output_dir, f'{timestamp}_plot_{scheme_name}.png')
+        filepath = os.path.join(output_dir,
+                                f'{timestamp}_plot_{scheme_name}.png')
     else:
         filepath = os.path.join(output_dir, f'{scheme_name}_comparison.png')
     plt.savefig(filepath, dpi=300, bbox_inches='tight')
@@ -188,14 +188,26 @@ def generate_error_report(all_errors, output_path='results/error_report.csv'):
         f.write('Scheme,Variable,L1_Error,L2_Error,Linf_Error\n')
         for scheme, vars_err in all_errors.items():
             for var, errs in vars_err.items():
-                f.write(f'{scheme},{var},{errs["L1"]:.6e},{errs["L2"]:.6e},{errs["Linf"]:.6e}\n')
+                f.write(
+                    f'{scheme},{var},{
+                        errs["L1"]:.6e},{
+                        errs["L2"]:.6e},{
+                        errs["Linf"]:.6e}\n')
 
     print(f"\n误差报告已保存至: {output_path}")
 
 
-def generate_all_schemes_comparison(results_dict, x, rho_exact, u_exact, p_exact,
-                                    n_points, t_final=0.2, cfl=0.8,
-                                    output_dir='results/figures', timestamp=None):
+def generate_all_schemes_comparison(
+        results_dict,
+        x,
+        rho_exact,
+        u_exact,
+        p_exact,
+        n_points,
+        t_final=0.2,
+        cfl=0.8,
+        output_dir='results/figures',
+        timestamp=None):
     """
     生成所有格式的叠加对比图 (4张子图: rho/u/p/E)。
 
@@ -235,10 +247,34 @@ def generate_all_schemes_comparison(results_dict, x, rho_exact, u_exact, p_exact
         E_num = _compute_total_energy(U_num)
         marker = markers[idx % len(markers)]
 
-        axes[0].plot(x, rho_num, marker, markersize=3, fillstyle='none', label=scheme)
-        axes[1].plot(x, p_num, marker, markersize=3, fillstyle='none', label=scheme)
-        axes[2].plot(x, u_num, marker, markersize=3, fillstyle='none', label=scheme)
-        axes[3].plot(x, E_num, marker, markersize=3, fillstyle='none', label=scheme)
+        axes[0].plot(
+            x,
+            rho_num,
+            marker,
+            markersize=3,
+            fillstyle='none',
+            label=scheme)
+        axes[1].plot(
+            x,
+            p_num,
+            marker,
+            markersize=3,
+            fillstyle='none',
+            label=scheme)
+        axes[2].plot(
+            x,
+            u_num,
+            marker,
+            markersize=3,
+            fillstyle='none',
+            label=scheme)
+        axes[3].plot(
+            x,
+            E_num,
+            marker,
+            markersize=3,
+            fillstyle='none',
+            label=scheme)
 
     axes[0].set_ylabel(r'$\rho$', fontsize=14)
     axes[0].set_ylim(0, 1.1)
@@ -262,7 +298,8 @@ def generate_all_schemes_comparison(results_dict, x, rho_exact, u_exact, p_exact
     _self_check_plot(fig, axes, 'All Schemes')
 
     if timestamp:
-        filepath = os.path.join(output_dir, f'{timestamp}_plot_all_schemes.png')
+        filepath = os.path.join(
+            output_dir, f'{timestamp}_plot_all_schemes.png')
     else:
         filepath = os.path.join(output_dir, 'all_schemes_comparison.png')
     plt.savefig(filepath, dpi=300, bbox_inches='tight')

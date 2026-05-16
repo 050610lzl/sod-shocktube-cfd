@@ -63,8 +63,8 @@ def sod_exact_solution(x, t, gamma=GAMMA):
 
     # ---- 步骤2: 求解接触间断速度 u* (Toro (2009) [2], 式4.47) ----
     if p_star <= p_L:
-        u_star = u_L - (2.0 * a_L / (gamma - 1.0)) * \
-                 ((p_star / p_L) ** ((gamma - 1.0) / (2.0 * gamma)) - 1.0)
+        u_star = u_L - (2.0 * a_L / (gamma - 1.0)) * (
+            (p_star / p_L) ** ((gamma - 1.0) / (2.0 * gamma)) - 1.0)
     else:
         A_L = 2.0 / ((gamma + 1.0) * rho_L)
         B_L = (gamma - 1.0) / (gamma + 1.0) * p_L
@@ -74,14 +74,16 @@ def sod_exact_solution(x, t, gamma=GAMMA):
     if p_star <= p_L:
         rho_star_L = rho_L * (p_star / p_L) ** (1.0 / gamma)
     else:
-        rho_star_L = rho_L * (p_star / p_L + (gamma - 1.0) / (gamma + 1.0)) / \
-                     (1.0 + (gamma - 1.0) / (gamma + 1.0) * p_star / p_L)
+        rho_star_L = rho_L * (
+            p_star / p_L + (gamma - 1.0) / (gamma + 1.0)) / (
+            1.0 + (gamma - 1.0) / (gamma + 1.0) * p_star / p_L)
 
     if p_star <= p_R:
         rho_star_R = rho_R * (p_star / p_R) ** (1.0 / gamma)
     else:
-        rho_star_R = rho_R * (p_star / p_R + (gamma - 1.0) / (gamma + 1.0)) / \
-                     (1.0 + (gamma - 1.0) / (gamma + 1.0) * p_star / p_R)
+        rho_star_R = rho_R * (
+            p_star / p_R + (gamma - 1.0) / (gamma + 1.0)) / (
+            1.0 + (gamma - 1.0) / (gamma + 1.0) * p_star / p_R)
 
     # ---- 步骤4: 计算波头/波尾位置 (Toro (2009) [2]) ----
     x_head = 0.5 - a_L * t
@@ -89,8 +91,9 @@ def sod_exact_solution(x, t, gamma=GAMMA):
     x_contact = 0.5 + u_star * t
 
     if p_star > p_R:
-        S_R = u_R + a_R * np.sqrt((gamma + 1.0) / (2.0 * gamma) * p_star / p_R +
-                                   (gamma - 1.0) / (2.0 * gamma))
+        S_R = u_R + a_R * np.sqrt(
+            (gamma + 1.0) / (2.0 * gamma) * p_star / p_R
+            + (gamma - 1.0) / (2.0 * gamma))
     else:
         S_R = u_R + a_R
     x_shock = 0.5 + S_R * t

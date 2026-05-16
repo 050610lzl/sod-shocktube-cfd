@@ -87,12 +87,12 @@ def time_march(U, dx, dt, scheme_func, gamma=GAMMA):
 def compute_conserved_quantities(U, dx, gamma=GAMMA):
     """
     计算全场守恒量 (质量/动量/能量)。
-    
+
     依据: Toro (2009) [2] 第1章 - 守恒律积分形式
-    
+
     对于一维守恒律 ∂U/∂t + ∂F/∂x = 0, 在无边界通量的周期域内,
     积分量 ∫U dx 应为常数。对于零梯度边界, 边界通量为零, 守恒量近似保持。
-    
+
     参数:
         U: 守恒变量数组, 形状 (N, 3)
            U[:,0] = rho (密度)
@@ -100,7 +100,7 @@ def compute_conserved_quantities(U, dx, gamma=GAMMA):
            U[:,2] = rho*E (总能量密度)
         dx: 网格间距
         gamma: 比热比
-    
+
     返回:
         mass: 总质量 = sum(rho) * dx
         momentum: 总动量 = sum(rho*u) * dx
@@ -115,9 +115,9 @@ def compute_conserved_quantities(U, dx, gamma=GAMMA):
 def check_conservation(U_current, U_initial, dx, step_num, gamma=GAMMA):
     """
     检查守恒量的变化百分比, 并打印报告。
-    
+
     每100步调用一次, 报告质量/动量/能量的相对变化。
-    
+
     参数:
         U_current: 当前步守恒变量
         U_initial: 初始时刻守恒变量
@@ -125,31 +125,33 @@ def check_conservation(U_current, U_initial, dx, step_num, gamma=GAMMA):
         step_num: 当前步数
         gamma: 比热比
     """
-    mass_cur, mom_cur, eng_cur = compute_conserved_quantities(U_current, dx, gamma)
-    mass_ini, mom_ini, eng_ini = compute_conserved_quantities(U_initial, dx, gamma)
-    
+    mass_cur, mom_cur, eng_cur = compute_conserved_quantities(
+        U_current, dx, gamma)
+    mass_ini, mom_ini, eng_ini = compute_conserved_quantities(
+        U_initial, dx, gamma)
+
     # 避免除零; 对于初始值接近零的量(如初始动量=0), 改用绝对误差报告
     eps = 1e-15
     if abs(mass_ini) > eps:
         mass_pct = abs(mass_cur - mass_ini) / abs(mass_ini) * 100.0
     else:
         mass_pct = abs(mass_cur - mass_ini) * 100.0  # 绝对值报告
-    
+
     if abs(mom_ini) > eps:
         mom_pct = abs(mom_cur - mom_ini) / abs(mom_ini) * 100.0
     else:
         mom_pct = abs(mom_cur - mom_ini) * 100.0  # 初始动量为0时用绝对值
-    
+
     if abs(eng_ini) > eps:
         eng_pct = abs(eng_cur - eng_ini) / abs(eng_ini) * 100.0
     else:
         eng_pct = abs(eng_cur - eng_ini) * 100.0
-    
+
     print(f"  [守恒性检查 步数={step_num}] "
           f"质量变化: {mass_pct:.6e}%, "
           f"动量变化: {mom_pct:.6e}%, "
           f"能量变化: {eng_pct:.6e}%")
-    
+
     return {
         'mass_change_pct': mass_pct,
         'momentum_change_pct': mom_pct,

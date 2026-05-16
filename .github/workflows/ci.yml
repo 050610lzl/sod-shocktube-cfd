@@ -92,7 +92,7 @@ jobs:
 
       - name: Run flake8 linting
         run: |
-          flake8 src/ --max-line-length=120 --ignore=E501,W503
+          flake8 src/ --max-line-length=120 --ignore=E501,W503,W504
 
   integration:
     runs-on: ubuntu-latest
