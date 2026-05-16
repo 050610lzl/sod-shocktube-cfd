@@ -189,10 +189,7 @@ def generate_error_report(all_errors, output_path='results/error_report.csv'):
         for scheme, vars_err in all_errors.items():
             for var, errs in vars_err.items():
                 f.write(
-                    f'{scheme},{var},{
-                        errs["L1"]:.6e},{
-                        errs["L2"]:.6e},{
-                        errs["Linf"]:.6e}\n')
+                    f'{scheme},{var},{errs["L1"]:.6e},{errs["L2"]:.6e},{errs["Linf"]:.6e}\n')
 
     print(f"\n误差报告已保存至: {output_path}")
 

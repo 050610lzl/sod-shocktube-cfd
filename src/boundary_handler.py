@@ -8,7 +8,6 @@
 """
 
 
-
 def apply_boundary_condition(U):
     """
     施加零梯度外推边界条件。
