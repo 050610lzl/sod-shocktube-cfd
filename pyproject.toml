@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "sod-shocktube-cfd"
+version = "1.2.0"
+description = "一维Sod激波管CFD求解器 - 基于有限差分法的9种经典数值格式实现"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "050610lzl"},
+]
+keywords = [
+    "CFD",
+    "computational-fluid-dynamics",
+    "sod-shock-tube",
+    "riemann-problem",
+    "finite-difference-method",
+    "euler-equations",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.21.0,<2.0.0",
+    "matplotlib>=3.5.0",
+    "pyyaml>=6.0",
+    "scipy>=1.7.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+]
+dev = [
+    "flake8>=5.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/050610lzl/sod-shocktube-cfd"
+Repository = "https://github.com/050610lzl/sod-shocktube-cfd.git"
+Issues = "https://github.com/050610lzl/sod-shocktube-cfd/issues"
+
+[project.scripts]
+sod-shocktube = "run_simulation:main"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
