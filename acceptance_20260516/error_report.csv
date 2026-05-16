@@ -1,0 +1,4 @@
+Scheme,Variable,L1_Error,L2_Error,Linf_Error
+godunov,rho,2.040829e-02,2.962805e-02,7.443483e-02
+godunov,u,3.423609e-02,8.065869e-02,4.753415e-01
+godunov,p,1.760790e-02,3.122319e-02,1.017598e-01
