@@ -69,7 +69,7 @@
 
 ```
 +---------------------------------------------------+
-|             Sod激波管CFD求解器 v1.0                 |
+|             Sod激波管CFD求解器 v1.5.1               |
 |                                                   |
 |  [YAML配置文件] --> [配置解析模块]                      |
 |                     ↓                              |
@@ -137,9 +137,10 @@
 | F-03 | 9种FDM格式求解 | 高 | 实现9种有限差分格式的时间推进 |
 | F-04 | 精确解计算 | 高 | 计算Riemann问题的解析精确解 |
 | F-05 | 误差分析 | 高 | 计算L1/L2/L∞三种误差范数 |
-| F-06 | 可视化 | 中 | 生成数值解与精确解的对比图 |
-| F-07 | 配置管理 | 中 | 支持YAML文件配置仿真参数 |
-| F-08 | 版本管理 | 低 | 提供版本号查询与更新机制 |
+| F-06 | 自定义初始条件 | 中 | 支持CLI参数自定义左右态初始值与隔膜位置 |
+| F-07 | 可视化 | 中 | 生成数值解与精确解的对比图 |
+| F-08 | 配置管理 | 中 | 支持YAML文件配置仿真参数 |
+| F-09 | 版本管理 | 低 | 提供版本号查询与更新机制 |
 
 ### 3.2 F-01: 网格生成
 
@@ -249,7 +250,7 @@ Sod(1978)[1]定义的标准初始条件：$(\rho_L, u_L, p_L) = (1.0, 0.0, 1.0),
 #### 后置条件
 - 守恒变量中密度和压力均为正值（$\rho > 0, p > 0$）
 - 每个时间步的CFL条件满足：$\max(|u|+c) \cdot \Delta t / \Delta x \le \text{CFL}$
-- 边界条件在每个时间步后正确施加（透射/固定边界条件）
+- 边界条件在每个时间步后正确施加，支持4种边界条件类型（zero_gradient/reflective/periodic/transmissive），通过CLI的`--bc`参数或YAML配置中的`boundary_type`项指定
 - MacCormack格式：交替方向计数器在每次求解开始时重置为0
 
 #### 文献依据
@@ -323,7 +324,41 @@ Sod(1978)[1]定义的标准初始条件：$(\rho_L, u_L, p_L) = (1.0, 0.0, 1.0),
 
 ---
 
-### 3.7 F-06: 可视化
+### 3.7 F-06: 自定义初始条件
+
+#### 描述
+支持通过CLI命令行参数或YAML配置文件自定义Sod激波管问题的左右态初始条件（密度、速度、压力）和隔膜位置，允许用户在不修改源代码的情况下研究非标准初始条件对求解结果的影响。
+
+#### 输入
+| 参数名 | 类型 | 范围 | 默认值 | 说明 |
+|--------|------|------|--------|------|
+| `--left_rho` | float | > 0 | 1.0 | 左侧密度 |
+| `--left_u` | float | 无约束 | 0.0 | 左侧速度 |
+| `--left_p` | float | > 0 | 1.0 | 左侧压力 |
+| `--right_rho` | float | > 0 | 0.125 | 右侧密度 |
+| `--right_u` | float | 无约束 | 0.0 | 右侧速度 |
+| `--right_p` | float | > 0 | 0.1 | 右侧压力 |
+| `--diaphragm` | float | (x_left, x_right) | 0.5 | 隔膜位置 |
+
+#### 输出
+- 初始化后`left_state`和`right_state`字典中的值被覆盖为CLI指定的自定义值
+- `diaphragm_pos`被覆盖为CLI指定的值
+
+#### 前置条件
+- 所有压力参数必须为正值
+- 所有密度参数必须为正值
+- 隔膜位置必须在计算域范围内
+
+#### 后置条件
+- 流场初始化使用的初始条件与CLI参数一致
+- 自定义值被正确传递到`initialize_flow()`和`exact_solver`调用
+
+#### 文献依据
+Sod(1978)[1]中讨论了改变初始条件（如密度比、压力比）对激波管波系结构的影响。Toro(2009)[2]第4章和第6章对不同初始条件下的Riemann问题进行了系统分析。
+
+---
+
+### 3.8 F-07: 可视化
 
 #### 描述
 为每一种数值格式生成4幅子图的对比图表，包含密度$\rho$、速度$u$、压力$p$和总能量$E$的空间分布，并同时绘制精确解（实线）与数值解（圆圈标记）。
@@ -362,7 +397,7 @@ CFD结果可视化的学术规范参见Laney(1998)[3]及Sod(1978)[1]（其原始
 
 ---
 
-### 3.8 F-07: 配置管理
+### 3.9 F-08: 配置管理
 
 #### 描述
 支持通过YAML格式的文本配置文件管理仿真参数，包括网格参数、物理参数、数值格式选择与输出配置。同时支持CLI命令行参数覆盖YAML中的对应设置。
@@ -388,6 +423,7 @@ physics:       # 物理参数
 simulation:    # 仿真控制参数
   t_final: 0.2
   cfl: 0.8
+  boundary_type: zero_gradient  # 边界条件类型: zero_gradient/reflective/periodic/transmissive
 schemes:       # 数值格式列表
   - lax_friedrichs
   - lax_wendroff
@@ -416,7 +452,7 @@ output:        # 输出配置
 
 ---
 
-### 3.9 F-08: 版本管理
+### 3.10 F-09: 版本管理
 
 #### 描述
 提供软件的语义化版本号（Semantic Versioning 2.0.0）管理，支持版本号查询与更新。
@@ -511,6 +547,14 @@ python main.py [OPTIONS]
 | `--cfl` | float | 0.8 | 0.1-1.0 | CFL数 |
 | `--t_final` | float | 0.2 | > 0 | 仿真终止时间 |
 | `--gamma` | float | 1.4 | > 1.0 | 比热比 |
+| `--bc`, `--boundary` | str | `zero_gradient` | `zero_gradient`, `reflective`, `periodic`, `transmissive` | 边界条件类型 |
+| `--left_rho` | float | 1.0 | > 0 | 左侧初始密度 |
+| `--left_u` | float | 0.0 | 无约束 | 左侧初始速度 |
+| `--left_p` | float | 1.0 | > 0 | 左侧初始压力 |
+| `--right_rho` | float | 0.125 | > 0 | 右侧初始密度 |
+| `--right_u` | float | 0.0 | 无约束 | 右侧初始速度 |
+| `--right_p` | float | 0.1 | > 0 | 右侧初始压力 |
+| `--diaphragm` | float | 0.5 | (x_left, x_right) | 隔膜位置 |
 | `--output_dir` | str | `results` | 有效路径 | 输出根目录 |
 
 #### 使用示例
@@ -556,7 +600,7 @@ YAML配置文件位于`config/simulation_config.yaml`，完整结构见第3.8节
 | 流场初始化 | `src/flow_initializer.py` | `initialize_flow(x, diaphragm_pos, left_state, right_state, gamma)` |
 | 有限差分格式 | `src/fd_schemes.py` | `FD_SCHEMES`字典, `solve_with_scheme(scheme_name, U, x, dx, ...)` |
 | 时间推进器 | `src/time_marcher.py` | `compute_dt(U, dx, cfl, gamma)`, `check_conservation(...)` |
-| 边界处理 | `src/boundary_handler.py` | `apply_boundary_condition(U)` |
+| 边界处理 | `src/boundary_handler.py` | `apply_boundary_condition(U, bc_type='zero_gradient')` |
 | 精确解计算 | `src/exact_solver.py` | `sod_exact_solution(x, t, gamma)` |
 | 误差分析 | `src/validator.py` | `compute_errors(U_num, rho_exact, u_exact, p_exact)` |
 | 输出写入 | `src/output_writer.py` | `save_results(...)`, `save_exact_solution(...)` |
