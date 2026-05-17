@@ -26,13 +26,13 @@ jobs:
             echo "ERROR: VERSION file not found!"
             exit 1
           fi
-          VERSION=$(cat VERSION)
+          VERSION=$(cat VERSION | tr -d '\r' | tr -d '[:space:]')
           if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
             echo "ERROR: Invalid version format: $VERSION (expected MAJOR.MINOR.PATCH)"
             exit 1
           fi
           echo "Project version: v$VERSION"
-          PYPROJECT_VERSION=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+          PYPROJECT_VERSION=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1 | tr -d '\r' | tr -d '[:space:]')
           if [ "$VERSION" != "$PYPROJECT_VERSION" ]; then
             echo "ERROR: VERSION ($VERSION) != pyproject.toml version ($PYPROJECT_VERSION)"
             exit 1
@@ -126,7 +126,7 @@ jobs:
 
       - name: Verify version
         run: |
-          VERSION=$(cat VERSION)
+          VERSION=$(cat VERSION | tr -d '\r' | tr -d '[:space:]')
           echo "Project version: v$VERSION"
 
       - name: Set up Python
