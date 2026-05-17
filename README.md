@@ -3,7 +3,7 @@
 [![CI](https://github.com/050610lzl/sod-shocktube-cfd/actions/workflows/ci.yml/badge.svg)](https://github.com/050610lzl/sod-shocktube-cfd/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.2.0-brightgreen)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.5.2-brightgreen)](VERSION)
 
 一维 Sod 激波管 CFD 求解器，基于有限差分法 (FDM) 实现 **9 种**经典数值格式，用于求解欧拉方程（可压缩无粘流体），并与 Riemann 精确解进行定量对比验证。
 
@@ -56,6 +56,12 @@ python run_simulation.py --scheme upwind
 
 # 运行多个格式
 python run_simulation.py --schemes lax_friedrichs upwind roe
+
+# 指定边界条件类型 (v1.5.0+)
+python run_simulation.py --bc reflective
+
+# 自定义初始条件 (v1.5.0+)
+python run_simulation.py --left_rho 2.0 --left_p 2.0 --right_rho 0.25 --right_p 0.2
 ```
 
 ### 运行测试
@@ -82,6 +88,40 @@ python -m pytest tests/ -v
 
 ---
 
+## 边界条件
+
+支持 4 种边界条件类型，通过 CLI 参数 `--bc` 或 YAML 配置 `boundary_type` 选择：
+
+| 类型 | CLI 值 | 行为 | 适用场景 |
+|------|--------|------|----------|
+| 零梯度（默认） | `zero_gradient` | U[0]=U[1], U[-1]=U[-2] | 开放边界、Sod 标准 |
+| 固壁反射 | `reflective` | 密度能量不变，速度反号 | 管道端壁 |
+| 周期 | `periodic` | U[0]=U[-2], U[-1]=U[1] | 无限长管道近似 |
+| 无反射透射 | `transmissive` | 二阶外推 | 波穿过边界不反射 |
+
+---
+
+## 自定义初始条件
+
+支持通过 CLI 参数覆盖标准 Sod 工况的初始条件：
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--left_rho` | 1.0 | 左态密度 |
+| `--left_u` | 0.0 | 左态速度 |
+| `--left_p` | 1.0 | 左态压力 |
+| `--right_rho` | 0.125 | 右态密度 |
+| `--right_u` | 0.0 | 右态速度 |
+| `--right_p` | 0.1 | 右态压力 |
+| `--diaphragm` | 0.5 | 隔膜位置 |
+
+```bash
+# 自定义初始条件 + 反射边界
+python run_simulation.py --left_rho 5.0 --left_p 5.0 --right_rho 0.5 --right_p 0.5 --bc periodic
+```
+
+---
+
 ## 项目结构
 
 ```
@@ -90,12 +130,12 @@ sod-shocktube-cfd/
 │   ├── mesh_generator.py         # 一维均匀网格生成
 │   ├── flow_initializer.py       # Sod 初始条件赋值
 │   ├── fd_schemes.py             # 9 种有限差分格式
-│   ├── boundary_handler.py       # 零梯度边界条件
+│   ├── boundary_handler.py       # 多种边界条件 (4种类型)
 │   ├── time_marcher.py           # CFL 时间步长推进
 │   ├── exact_solver.py           # Riemann 精确解 (Toro 2009)
 │   ├── output_writer.py          # 结果数据输出
 │   └── validator.py              # 误差计算与可视化
-├── tests/                        # 单元测试 (34 项)
+├── tests/                        # 单元测试 (39 项)
 │   ├── test_mesh.py
 │   ├── test_initialization.py
 │   ├── test_boundary.py
@@ -136,6 +176,7 @@ physics:
 simulation:
   t_final: 0.2
   cfl: 0.8
+  boundary_type: zero_gradient  # 边界条件类型
 
 schemes:
   - lax_friedrichs
