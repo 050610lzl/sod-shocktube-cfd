@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0] - 2026-05-16
+
+### Added
+- 多种边界条件支持：新增 reflection (固壁反射)、periodic (周期)、transmissive (无反射透射)
+- 边界条件 CLI 参数 `--bc` / `--boundary` (可选 zero_gradient/reflective/periodic/transmissive)
+- 初始条件 CLI 参数: `--left_rho`, `--left_u`, `--left_p`, `--right_rho`, `--right_u`, `--right_p`, `--diaphragm`
+- 配置文件新增 `boundary_type` 配置项
+- 5 项新单元测试覆盖全部边界条件类型
+
 ## [1.4.0] - 2026-05-16
 
 ### Added
@@ -86,6 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 34 项单元测试
 - 项目计划文档与构建文档
 
+[1.5.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.1.1...v1.2.0

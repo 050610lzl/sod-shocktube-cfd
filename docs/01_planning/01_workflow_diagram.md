@@ -4,9 +4,9 @@
 
 | 项目 | 内容 |
 |------|------|
-| 文档编号 | WF-SOD-CFD-1.0 |
-| 版本号 | 1.0 |
-| 编制日期 | 2026-05-16 |
+| 文档编号 | WF-SOD-CFD-1.5 |
+| 版本号 | 1.5.1 |
+| 编制日期 | 2026-05-17 |
 | 编制人 | CFD课程项目组 |
 | 绘图工具 | Mermaid (Markdown内嵌) |
 
@@ -100,7 +100,7 @@ flowchart TD
 
 1. **CFL自适应时间步长**：每个时间步根据当前流场的最大特征波速计算满足CFL条件的$\Delta t$（文献依据：LeVeque, 1992[4]）。
 2. **格式步进函数**：调用格式特定的`xxx_step(U, dx, dt, gamma)`计算下一时间层的$U^{n+1}$。
-3. **边界条件施加**：在每次步进后更新两端边界节点的值（透射边界条件）。
+3. **边界条件施加**：在每次步进后更新两端边界节点的值（边界条件，类型可配置）。
 4. **守恒性监控**：定期检查质量、动量和总能是否守恒（文献依据：Laney, 1998[3]）。
 5. **终止判断**：当$t \ge t_{\text{final}}$时，以调整后的$\Delta t = t_{\text{final}} - t$完成最后一步。
 
@@ -209,7 +209,7 @@ flowchart LR
     User(("用户<br/>(CLI参数输入)")) --> CLI[CLI参数]
     YAML[("config/<br/>simulation_config.yaml")] --> Config[YAML配置]
 
-    CLI & Config --> System[[Sod激波管<br/>CFD求解器<br/>v1.0]]
+    CLI & Config --> System[[Sod激波管<br/>CFD求解器<br/>v1.5.1]]
 
     System --> DataOut[("results/data/<br/>数值解 .npy")]
     System --> ExactOut[("results/exact/<br/>精确解 .npy")]
@@ -338,7 +338,7 @@ flowchart LR
 ---
 
 **文档控制信息**：
-- 编制：CFD课程项目组 | 2026-05-16
+- 编制：CFD课程项目组 | 2026-05-17
 - 审核：--（待审核）
 - 批准：--（待批准）
 

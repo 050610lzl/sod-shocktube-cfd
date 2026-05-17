@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |------|------|
 | 项目名称 | Sod Shock Tube CFD - 一维激波管有限差分法求解器 |
-| 文档版本 | v1.0 |
+| 文档版本 | v1.5.1 |
 | 发布日期 | 2026-05-16 |
-| 项目版本 | v1.3.0 |
+| 项目版本 | v1.5.1 |
 | 文档编号 | DELIVERY-CHECKLIST-001 |
 
 ---
@@ -20,7 +20,7 @@
 | 2 | `mesh_generator.py` | `src/mesh_generator.py` | 一维均匀网格生成模块 | [x] 已交付 |
 | 3 | `flow_initializer.py` | `src/flow_initializer.py` | Sod初始条件赋值模块 | [x] 已交付 |
 | 4 | `fd_schemes.py` | `src/fd_schemes.py` | 9种有限差分格式实现 | [x] 已交付 |
-| 5 | `boundary_handler.py` | `src/boundary_handler.py` | 零梯度外推边界条件 | [x] 已交付 |
+| 5 | `boundary_handler.py` | `src/boundary_handler.py` | 4种边界条件(zero_gradient/reflective/periodic/transmissive) | [x] 已交付 |
 | 6 | `time_marcher.py` | `src/time_marcher.py` | CFL条件时间步长推进 | [x] 已交付 |
 | 7 | `exact_solver.py` | `src/exact_solver.py` | Riemann精确解求解器(Toro 2009) | [x] 已交付 |
 | 8 | `output_writer.py` | `src/output_writer.py` | 时间戳归档数据输出 | [x] 已交付 |

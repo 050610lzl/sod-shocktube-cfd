@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |------|------|
 | 项目名称 | Sod Shock Tube CFD - 一维激波管有限差分法求解器 |
-| 文档版本 | v1.0 |
+| 文档版本 | v1.5.1 |
 | 发布日期 | 2026-05-16 |
-| 项目版本 | v1.3.0 |
+| 项目版本 | v1.5.1 |
 | 文档编号 | SOURCE-LICENSE-001 |
 
 ---
@@ -166,7 +166,7 @@ SOFTWARE.
 如在学术研究中使用本项目，请引用以下文献：
 
 ```
-Sod Shock Tube CFD Solver v1.3.0.
+Sod Shock Tube CFD Solver v1.5.1.
 https://github.com/050610lzl/sod-shocktube-cfd
 
 Sod, G. A. (1978). A survey of several finite difference methods

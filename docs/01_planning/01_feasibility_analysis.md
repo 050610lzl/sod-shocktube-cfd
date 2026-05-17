@@ -90,7 +90,7 @@ Toro(2009)在其权威教材[2]第4章中给出了Euler方程Riemann问题精确
 | 精确Riemann解迭代求解 | 中 | 使用SciPy的`brentq`封装，无需手写迭代器[2] |
 | Roe格式熵修复 | 中 | Toro(2009)[2]第11章提供了Harten熵修复的完整算法 |
 | TVD限制器实现 | 中 | Minmod限制器为最简单的限制器，实现约10行代码[5] |
-| 边界条件处理 | 低 | 一维透射边界条件仅需复制相邻内点值 |
+| 边界条件处理 | 低 | 已实现4种边界条件(zero_gradient/reflective/periodic/transmissive)，覆盖一维CFD仿真常见需求 |
 | CFL自适应时间步长 | 低 | 经典公式$\Delta t = \text{CFL} \cdot \Delta x / \max(|u|+c)$ |
 
 **判断**：总体技术难度适中，适合CFD课程项目的学习目标。最复杂的部分（精确Riemann解和TVD格式）在文献中均有详尽的算法描述。

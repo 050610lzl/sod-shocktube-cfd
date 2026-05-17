@@ -3,9 +3,9 @@
 | 项目 | 内容 |
 |------|------|
 | **项目名称** | 一维Sod激波管CFD数值格式对比项目 |
-| **项目版本** | v1.3.0 |
-| **文档编号** | TP-SOD-20260516-v1.0 |
-| **编写日期** | 2026-05-16 |
+| **项目版本** | v1.5.1 |
+| **文档编号** | TP-SOD-20260517-v1.1 |
+| **编写日期** | 2026-05-17 |
 | **编写人** | Sod激波管CFD验证Agent |
 | **审核状态** | 待审核 |
 
@@ -46,10 +46,10 @@
 
 | 测试层级 | 范围 | 说明 | 状态 |
 |----------|------|------|------|
-| **单元测试** | 8个核心模块 | 网格生成、流场初始化、边界处理、9种数值格式单步推进、通量计算、守恒变量转换、Jacobian矩阵 | 34项已实现 |
+| **单元测试** | 8个核心模块 | 网格生成、流场初始化、边界处理、9种数值格式单步推进、通量计算、守恒变量转换、Jacobian矩阵 | 39项已实现 |
 | **集成测试** | 全链路求解 | 各格式从初始条件到t=0.2的全过程求解，包含时间推进、边界施加、守恒性检查 | CI中已覆盖 |
 | **系统测试** | 端到端验证 | 精确解对比、波系位置验证、CFL稳定性边界扫描、网格收敛性分析 | 部分完成 |
-| **回归测试** | 全量自动化 | 所有34项单元测试 + CI流水线（push/PR触发） | CI已配置 |
+| **回归测试** | 全量自动化 | 所有39项单元测试 + CI流水线（push/PR触发） | CI已配置 |
 | **性能测试** | 运行时间与内存 | 各格式在不同网格分辨率下的运行时间、内存占用、收敛速率 | 待系统化 |
 | **验收测试** | 发布标准 | 基于Build文档的多维度评分（代码工程30分 + 仿真结果25分 + 可视化15分 + 文档20分 + 交付物10分） | 已完成v1.0评分95/100 |
 
@@ -59,7 +59,7 @@
 |------|--------|----------|--------|----------|
 | 网格生成 | src/mesh_generator.py | tests/test_mesh.py | 6 | 默认网格、自定义点数、均匀间距、边界、中点 |
 | 流场初始化 | src/flow_initializer.py | tests/test_initialization.py | 9 | 左右密度/速度/能量、隔膜位置、输出形状、守恒一致性 |
-| 边界处理 | src/boundary_handler.py | tests/test_boundary.py | 8 | 零梯度外推：左右边界rho/动量/能量、全分量、内部保持 |
+| 边界处理 | src/boundary_handler.py | tests/test_boundary.py | 13 | 四种边界条件（零梯度外推/固壁反射/周期/透射）：各类型左右边界全分量验证 |
 | 数值格式 | src/fd_schemes.py | tests/test_fd_schemes.py | 11 | 通量物理一致性、原变量转换、Jacobian形状、4种格式单步推进、Steger-Warming一致性、Lax-Friedrichs守恒性、Upwind单调性、Lax-Wendroff对称性 |
 
 ---
@@ -71,7 +71,7 @@
 | 策略项 | 说明 | 依据 |
 |--------|------|------|
 | **代码路径覆盖** | 所有数值格式的核心函数（通量计算、单步推进）必须有至少一个单元测试覆盖 | Laney (1998) [3] |
-| **边界条件验证** | 对零梯度外推边界，验证左右两端所有守恒变量分量 | OneFlow-CFD [6] |
+| **边界条件验证** | 对四种边界条件（零梯度外推/固壁反射/周期/透射），验证各类型边界处理逻辑的正确性 | OneFlow-CFD [6], Laney (1998) [3] |
 | **物理一致性检查** | 通量计算满足F = (rho*u, rho*u^2+p, u*(rho*E+p))；Steger-Warming分裂满足F^+ + F^- = F | Toro (2009) [2] |
 | **异常路径验证** | TVD格式的负密度/压力退化保护逻辑已被覆盖 | Harten (1983) [8] |
 
@@ -90,7 +90,7 @@
 
 | Job | 触发条件 | Python版本 | 内容 |
 |-----|----------|-----------|------|
-| **test** | push/PR到master/main | 3.9, 3.10, 3.11 | 版本验证、34项单元测试、迎风格式单步运行、CFL/TVD性质检查 |
+| **test** | push/PR到master/main | 3.9, 3.10, 3.11 | 版本验证、39项单元测试、迎风格式单步运行、CFL/TVD性质检查 |
 | **lint** | push/PR到master/main | 3.11 | flake8代码风格检查（忽略E501/W503/W504） |
 | **integration** | push/PR到master/main | 3.11 | 9种格式全链路求解，验证无负密度/负压力 |
 
@@ -143,7 +143,7 @@
 
 ## 5. 测试用例清单
 
-### 5.1 现有测试用例（34项）
+### 5.1 现有测试用例（39项）
 
 #### 5.1.1 网格生成模块（test_mesh.py -- 6项）
 
@@ -170,18 +170,23 @@
 | TC-INIT-008 | test_output_shape | N=200输出形状=(200,3) | - | 通过 |
 | TC-INIT-009 | test_conservative_consistency | 速度由动量/密度反算与预期一致 | - | 通过 |
 
-#### 5.1.3 边界处理模块（test_boundary.py -- 8项）
+#### 5.1.3 边界处理模块（test_boundary.py -- 13项）
 
 | 用例ID | 用例名称 | 验证内容 | 文献依据 | 状态 |
 |--------|----------|----------|----------|------|
-| TC-BC-001 | test_left_boundary_rho | 左边界密度=相邻内点 | Laney (1998) [3] | 通过 |
-| TC-BC-002 | test_left_boundary_momentum | 左边界动量=相邻内点 | Laney (1998) [3] | 通过 |
-| TC-BC-003 | test_left_boundary_energy | 左边界能量=相邻内点 | Laney (1998) [3] | 通过 |
-| TC-BC-004 | test_right_boundary_rho | 右边界密度=相邻内点 | Laney (1998) [3] | 通过 |
-| TC-BC-005 | test_right_boundary_momentum | 右边界动量=相邻内点 | Laney (1998) [3] | 通过 |
-| TC-BC-006 | test_right_boundary_energy | 右边界能量=相邻内点 | Laney (1998) [3] | 通过 |
-| TC-BC-007 | test_all_components | 全分量同时外推正确 | Laney (1998) [3] | 通过 |
-| TC-BC-008 | test_interior_preserved | 内部网格点不被边界处理修改 | Laney (1998) [3] | 通过 |
+| TC-BC-001 | test_left_boundary_rho | 左边界密度=相邻内点（零梯度） | Laney (1998) [3] | 通过 |
+| TC-BC-002 | test_left_boundary_momentum | 左边界动量=相邻内点（零梯度） | Laney (1998) [3] | 通过 |
+| TC-BC-003 | test_left_boundary_energy | 左边界能量=相邻内点（零梯度） | Laney (1998) [3] | 通过 |
+| TC-BC-004 | test_right_boundary_rho | 右边界密度=相邻内点（零梯度） | Laney (1998) [3] | 通过 |
+| TC-BC-005 | test_right_boundary_momentum | 右边界动量=相邻内点（零梯度） | Laney (1998) [3] | 通过 |
+| TC-BC-006 | test_right_boundary_energy | 右边界能量=相邻内点（零梯度） | Laney (1998) [3] | 通过 |
+| TC-BC-007 | test_all_components | 全分量同时外推正确（零梯度） | Laney (1998) [3] | 通过 |
+| TC-BC-008 | test_interior_preserved | 内部网格点不被边界处理修改（零梯度） | Laney (1998) [3] | 通过 |
+| TC-BC-009 | test_reflective_boundary | 固壁反射：左右边界动量反号 | Hirsch (1990) [3], Blazek (2015) [4] | 通过 |
+| TC-BC-010 | test_periodic_boundary | 周期边界：U[0]=U[-2], U[-1]=U[1] | Hirsch (1990) [3] | 通过 |
+| TC-BC-011 | test_transmissive_boundary | 透射边界：二阶外推 U[0]=2U[1]-U[2] | Hirsch (1990) [3] | 通过 |
+| TC-BC-012 | test_zero_gradient_default | 默认参数为zero_gradient类型 | OneFlow-CFD [6] | 通过 |
+| TC-BC-013 | test_boundary_types_registry | BOUNDARY_TYPES注册表含4种类型 | - | 通过 |
 
 #### 5.1.4 数值格式模块（test_fd_schemes.py -- 11项）
 
@@ -247,14 +252,14 @@
 | **Phase 1: 核心功能测试** | 4种必选格式实现与单元测试、34项pytest用例编写与调试 | 2026-05-01 ~ 2026-05-03 | 已完成 |
 | **Phase 2: 缺陷修复与增强** | Steger-Warming R_inv修复、MacCormack交替方向、熵修复功能、守恒性检查 | 2026-05-03 ~ 2026-05-06 | 已完成 |
 | **Phase 3: 系统验证** | 全9种格式N=100验证、CFL稳定性扫描、网格收敛性分析、验收评分 | 2026-05-06 ~ 2026-05-07 | 已完成 |
-| **Phase 4: 补充完善** | 补充5种扩展格式单元测试、全格式收敛数据、性能测试、文档完善 | 2026-05-16 ~ 2026-06-01 | 进行中 |
-| **Phase 5: 发布准备** | 回归测试、性能基准建立、v1.4.0发布 | 2026-06-01 ~ 2026-06-15 | 未开始 |
+| **Phase 4: 补充完善** | 补充5种扩展格式单元测试、全格式收敛数据、性能测试、文档完善（含v1.5.1边界条件扩展） | 2026-05-16 ~ 2026-06-01 | 进行中 |
+| **Phase 5: 发布准备** | 回归测试、性能基准建立、v1.5.1发布 | 2026-06-01 ~ 2026-06-15 | 未开始 |
 
 ### 6.2 测试执行频率
 
 | 测试类型 | 执行频率 | 触发条件 |
 |----------|----------|----------|
-| 单元测试（34项） | 每次push/PR | CI自动 |
+| 单元测试（39项） | 每次push/PR | CI自动 |
 | flake8代码风格 | 每次push/PR | CI自动 |
 | 集成测试 | 每次push/PR | CI自动 |
 | 全格式系统验证 | 版本发布前 | 手动执行 |
@@ -300,7 +305,7 @@
 |------|------|--------|------|------|
 | T1 | test_mesh.py | 6 | tests/test_mesh.py | 已交付 |
 | T2 | test_initialization.py | 9 | tests/test_initialization.py | 已交付 |
-| T3 | test_boundary.py | 8 | tests/test_boundary.py | 已交付 |
+| T3 | test_boundary.py | 13 | tests/test_boundary.py | 已交付 |
 | T4 | test_fd_schemes.py | 11 | tests/test_fd_schemes.py | 已交付 |
 
 ### 8.3 CI配置
@@ -339,6 +344,6 @@
 
 ---
 
-*文档编号: TP-SOD-20260516-v1.0*
-*生成时间: 2026-05-16*
+*文档编号: TP-SOD-20260517-v1.1*
+*生成时间: 2026-05-17*
 *Sod激波管CFD验证Agent*

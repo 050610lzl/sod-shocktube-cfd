@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |------|------|
 | 项目名称 | Sod Shock Tube CFD - 一维激波管有限差分法求解器 |
-| 文档版本 | v1.0 |
-| 发布日期 | 2026-05-16 |
-| 适用版本 | v1.3.0 |
+| 文档版本 | v1.1 |
+| 发布日期 | 2026-05-17 |
+| 适用版本 | v1.5.1 |
 | 文档编号 | FAQ-001 |
 
 ---
@@ -76,7 +76,7 @@ CFL = max(|u| + c) * dt / dx
 
 ### FAQ-05: 如何修改初始条件？
 
-**答**: 有两种方式：
+**答**: 有三种方式：
 
 **方式 A: 修改配置文件**（推荐）
 
@@ -94,7 +94,18 @@ physics:
     p: 0.1
 ```
 
-**方式 B: 编程接口**
+**方式 B: 命令行参数**（v1.5.1 新增）
+
+```bash
+# 直接通过 CLI 覆盖初始条件，无需修改 YAML
+python run_simulation.py --left_rho 1.0 --left_u 0.0 --left_p 5.0 \
+    --right_rho 0.125 --right_u 0.0 --right_p 0.1 \
+    --diaphragm 0.5 --cfl 0.5
+```
+
+可用的 CLI 参数：`--left_rho`, `--left_u`, `--left_p`, `--right_rho`, `--right_u`, `--right_p`, `--diaphragm`
+
+**方式 C: 编程接口**
 
 ```python
 from src.flow_initializer import initialize_flow
@@ -352,7 +363,7 @@ python -m pytest tests/ -v --tb=short
 python run_simulation.py --n_points 100 --scheme upwind
 ```
 
-34 项测试全部通过且仿真正常完成即为安装正确。
+39 项测试全部通过且仿真正常完成即为安装正确。
 
 ---
 
@@ -362,7 +373,7 @@ python run_simulation.py --n_points 100 --scheme upwind
 
 1. **引用本项目**:
    ```
-   Sod Shock Tube CFD Solver v1.3.0.
+   Sod Shock Tube CFD Solver v1.5.1.
    https://github.com/050610lzl/sod-shocktube-cfd
    ```
 
@@ -420,7 +431,102 @@ ls results/figures/20260516_230000/
 
 ### FAQ-24: 项目支持 Python 3.12+ 吗？
 
-**答**: 当前版本（v1.3.0）仅正式支持 Python 3.9-3.11。Python 3.12 和 3.13 未经过充分测试，但鉴于项目的纯 Python 实现，有很大可能性可以直接运行。建议使用 3.9-3.11 以确保 CI 兼容。
+**答**: 当前版本（v1.5.1）仅正式支持 Python 3.9-3.11。Python 3.12 和 3.13 未经过充分测试，但鉴于项目的纯 Python 实现，有很大可能性可以直接运行。建议使用 3.9-3.11 以确保 CI 兼容。
+
+---
+
+### FAQ-25: 如何选择边界条件类型？
+
+**答**: 项目支持 4 种边界条件类型（v1.5.1 新增），选择建议如下：
+
+| 边界类型 | CLI / YAML 参数值 | 适用场景 | 典型行为 |
+|----------|:-----------------:|----------|----------|
+| 零梯度外推 | `zero_gradient`（默认） | 标准 Sod 问题、开放出口 | U[0] = U[1], U[-1] = U[-2]（一阶外推） |
+| 固壁反射 | `reflective` | 管道端壁、对称面、固壁边界 | 密度/能量对称，动量反号（模拟壁面反弹） |
+| 周期边界 | `periodic` | 周期性流动、无限管道 | U[0] = U[-2], U[-1] = U[1]（首尾衔接） |
+| 透射边界 | `transmissive` | 亚/超音速出口、无反射边界 | U[0] = 2*U[1] - U[2]（二阶外推） |
+
+**使用方式**：
+
+```bash
+# CLI 方式
+python run_simulation.py --bc reflective
+python run_simulation.py --boundary periodic
+
+# YAML 配置方式
+# config/simulation_config.yaml:
+# boundary:
+#   boundary_type: transmissive
+```
+
+**选择建议**：
+
+- **标准 Sod 激波管验证**：使用默认 `zero_gradient`，与经典文献 [1] 一致
+- **管道端壁效应研究**：使用 `reflective`，观察激波在壁面反射
+- **长时间模拟或周期性管道**：使用 `periodic`，避免边界扰动累积
+- **出口边界**：使用 `transmissive`，允许波系无反射地流出计算域
+
+**参考文献**: Hirsch, C. (1990). Numerical Computation of Internal and External Flows, Vol. 2. John Wiley & Sons.
+
+---
+
+### FAQ-26: 如何自定义初始条件？（CLI vs YAML）
+
+**答**: v1.5.1 提供了两种方式自定义 Sod 激波管的初始条件：
+
+**方式 A: 命令行参数**（适合快速实验，v1.5.1 新增）
+
+```bash
+# 所有参数均可通过 CLI 覆盖
+python run_simulation.py \
+    --left_rho 1.0 --left_u 0.0 --left_p 3.0 \
+    --right_rho 0.1 --right_u 0.0 --right_p 0.05 \
+    --diaphragm 0.4 \
+    --cfl 0.5 \
+    --scheme roe
+```
+
+| CLI 参数 | 含义 | Sod 标准值 |
+|----------|------|:----------:|
+| `--left_rho` | 左态密度 | 1.0 |
+| `--left_u` | 左态速度 | 0.0 |
+| `--left_p` | 左态压力 | 1.0 |
+| `--right_rho` | 右态密度 | 0.125 |
+| `--right_u` | 右态速度 | 0.0 |
+| `--right_p` | 右态压力 | 0.1 |
+| `--diaphragm` | 隔膜位置 | 0.5 |
+
+> **注意**：压力比（p_L/p_R）过大时建议降低 CFL（如 0.3-0.5）以防发散。
+
+**方式 B: YAML 配置文件**（适合保存和重复使用）
+
+编辑 `config/simulation_config.yaml`：
+
+```yaml
+physics:
+  gamma: 1.4
+  diaphragm_pos: 0.5
+  left_state:
+    rho: 1.0
+    u: 0.0
+    p: 3.0       # 增大高压侧压力
+  right_state:
+    rho: 0.1      # 降低低压侧密度
+    u: 0.0
+    p: 0.05      # 降低低压侧压力
+```
+
+**优先级**：CLI 参数 > YAML 配置文件。当 CLI 未指定时，回退到 YAML 值。
+
+**典型变体问题**：
+
+| 名称 | p_L/p_R | rho_L/rho_R | 特点 |
+|------|:-------:|:-----------:|------|
+| Sod 标准 | 10 | 8 | 经典基准问题 |
+| 强激波 | 100 | 8 | 激波更强，需降低 CFL |
+| 密度型 | 10 | 3 | 接触间断更强 |
+
+**参考文献**: Sod, G. A. (1978). JCP, 27(1), 1-31.
 
 ---
 

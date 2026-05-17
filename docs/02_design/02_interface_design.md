@@ -1,6 +1,6 @@
 # 接口设计文档
 
-> 文档版本: v1.0  
+> 文档版本: v1.5.1  
 > 项目: 一维Sod激波管CFD求解器 (sod-shocktube-cfd)  
 > 文献依据: Sod (1978) [1], Toro (2009) [2], Laney (1998) [3], OneFlow-CFD [4]
 
@@ -21,6 +21,14 @@
 | `--cfl` | `float` | 否 | `None` (使用配置文件) | CFL 数, 覆盖配置文件中的 `simulation.cfl` |
 | `--scheme` | `str` | 否 | `None` (运行全部) | 指定单个格式运行. 可选值见 [1.2节](#12-可用的格式名称) |
 | `--schemes` | `str` (nargs='+') | 否 | `None` | 指定多个格式运行 (空格分隔) |
+| `--bc`, `--boundary` | `str` | 否 | `zero_gradient` | 边界条件类型. 可选值: `zero_gradient`, `reflective`, `periodic`, `transmissive` |
+| `--left_rho` | `float` | 否 | `1.0` | 左侧初始密度 |
+| `--left_u` | `float` | 否 | `0.0` | 左侧初始速度 |
+| `--left_p` | `float` | 否 | `1.0` | 左侧初始压力 |
+| `--right_rho` | `float` | 否 | `0.125` | 右侧初始密度 |
+| `--right_u` | `float` | 否 | `0.0` | 右侧初始速度 |
+| `--right_p` | `float` | 否 | `0.1` | 右侧初始压力 |
+| `--diaphragm` | `float` | 否 | `0.5` | 隔膜位置 |
 
 #### 用法示例
 
@@ -98,6 +106,7 @@ physics:
 simulation:
   t_final: 0.2           # float, 仿真终止时间
   cfl: 0.8               # float, CFL 数
+  boundary_type: zero_gradient  # str, 边界条件类型: zero_gradient/reflective/periodic/transmissive
 
 # 数值格式列表
 schemes:
@@ -135,6 +144,7 @@ output:
 | `physics.right_state.p` | `float` | 0.1 | > 0 |
 | `simulation.t_final` | `float` | 0.2 | > 0 |
 | `simulation.cfl` | `float` | 0.8 | (0, 1.0], 推荐 0.8~0.95 |
+| `simulation.boundary_type` | `str` | `zero_gradient` | `zero_gradient` / `reflective` / `periodic` / `transmissive` |
 | `schemes` | `list[str]` | 全部8种 | 每个元素必须是 FD_SCHEMES 中的键 |
 | `output.data_dir` | `str` | `results/data` | 可写路径 |
 | `output.exact_dir` | `str` | `results/exact` | 可写路径 |
@@ -169,7 +179,7 @@ def load_config(config_path='config/simulation_config.yaml'):
 | `initialize_flow` | flow_initializer | Sod 初始条件流场初始化 |
 | `FD_SCHEMES` | fd_schemes | 格式注册表字典 |
 | `solve_with_scheme` | fd_schemes | 使用指定格式求解 |
-| `apply_boundary_condition` | boundary_handler | 零梯度边界条件 |
+| `apply_boundary_condition` | boundary_handler | 施加边界条件 (支持4种类型) |
 | `compute_dt` | time_marcher | CFL 时间步长 |
 | `time_march` | time_marcher | 单步时间推进 |
 | `sod_exact_solution` | exact_solver | Riemann 精确解 |
@@ -271,17 +281,28 @@ def solve_with_scheme(
 
 ```python
 def apply_boundary_condition(
-    U: np.ndarray
+    U: np.ndarray,
+    bc_type: str = 'zero_gradient'
 ) -> np.ndarray:
     """
-    施加零梯度外推边界条件。
+    施加边界条件，支持4种类型。
 
-    实现规则:
-        左边界: U[0] = U[1]
-        右边界: U[N-1] = U[N-2]
+    边界条件类型:
+        'zero_gradient'  (默认): 零梯度外推
+           左边界: U[0] = U[1]
+           右边界: U[N-1] = U[N-2]
+        'reflective': 固壁反射
+           左边界: U[0, 1] = -U[1, 1]，其余分量零梯度
+           右边界: U[N-1, 1] = -U[N-2, 1]，其余分量零梯度
+        'periodic': 周期边界
+           左边界: U[0] = U[N-2]
+           右边界: U[N-1] = U[1]
+        'transmissive': 透射边界
+           基于特征线方法的对外行波外推
 
     参数:
         U: 守恒变量数组, 形状 (N, 3)
+        bc_type: 边界条件类型字符串 (默认 'zero_gradient')
 
     返回:
         U: 施加边界条件后的数组 (原地修改)

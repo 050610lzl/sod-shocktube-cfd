@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |------|------|
 | 项目名称 | Sod Shock Tube CFD - 一维激波管有限差分法求解器 |
-| 文档版本 | v1.0 |
-| 发布日期 | 2026-05-16 |
-| 适用版本 | v1.3.0 |
+| 文档版本 | v1.1 |
+| 发布日期 | 2026-05-17 |
+| 适用版本 | v1.5.1 |
 | 文档编号 | USER-MANUAL-001 |
 
 ---
@@ -38,7 +38,14 @@ Sod 激波管是检验 CFD 数值格式对间断捕捉能力的"Hello World"级�
 - 隔膜位置: x = 0.5
 - 比热比: gamma = 1.4
 - 仿真时间: t = 0.2
-- 边界条件: 零梯度（外推边界）
+- 边界条件: 支持4种类型（见下表），默认为 zero_gradient（零梯度外推）
+
+| 边界类型 | CLI 参数值 | 说明 | 适用场景 |
+|----------|:---------:|------|----------|
+| 零梯度外推 | `zero_gradient` | 边界值=相邻内点值（默认） | 标准Sod问题、开放边界 |
+| 固壁反射 | `reflective` | 密度/能量对称，动量反号 | 管道端壁、对称面 |
+| 周期边界 | `periodic` | 左端=右端倒数第二点，右端=左端第二点 | 周期性流动 |
+| 透射边界 | `transmissive` | 二阶外推 U[0]=2U[1]-U[2] | 亚/超音速出口 |
 
 ### 1.3 本软件支持的 9 种数值格式
 
@@ -107,7 +114,7 @@ python -c "from src.mesh_generator import generate_mesh; print('OK')"
 python -m pytest tests/ -v --tb=short
 ```
 
-预期所有 34 项测试通过。
+预期所有 39 项测试通过。
 
 ---
 
@@ -179,6 +186,14 @@ python run_simulation.py [OPTIONS]
 | `--cfl` | float | `None`（使用配置文件值） | CFL 数，覆盖配置文件 |
 | `--scheme` | str | `None` | 指定单个格式运行 |
 | `--schemes` | list | `None` | 指定多个格式运行 |
+| `--bc`, `--boundary` | str | `zero_gradient` | 边界条件类型：`zero_gradient`/`reflective`/`periodic`/`transmissive` |
+| `--left_rho` | float | `None`（使用配置文件值） | 左态密度，覆盖配置文件 |
+| `--left_u` | float | `None`（使用配置文件值） | 左态速度，覆盖配置文件 |
+| `--left_p` | float | `None`（使用配置文件值） | 左态压力，覆盖配置文件 |
+| `--right_rho` | float | `None`（使用配置文件值） | 右态密度，覆盖配置文件 |
+| `--right_u` | float | `None`（使用配置文件值） | 右态速度，覆盖配置文件 |
+| `--right_p` | float | `None`（使用配置文件值） | 右态压力，覆盖配置文件 |
+| `--diaphragm` | float | `None`（使用配置文件值） | 隔膜位置，覆盖配置文件 |
 
 ### 4.2 main.py 参数
 
@@ -221,6 +236,25 @@ python run_simulation.py --n_points 50
 python run_simulation.py --n_points 100
 python run_simulation.py --n_points 200
 python run_simulation.py --n_points 400
+
+# 指定边界条件
+python run_simulation.py --scheme roe --bc reflective
+
+# 使用周期边界运行全部格式
+python run_simulation.py --boundary periodic
+
+# 透射边界
+python run_simulation.py --scheme hllc --bc transmissive
+
+# 自定义初始条件（命令行）
+python run_simulation.py --left_rho 1.0 --left_u 0.0 --left_p 5.0 \
+    --right_rho 0.125 --right_u 0.0 --right_p 0.1 --cfl 0.5
+
+# 修改隔膜位置
+python run_simulation.py --diaphragm 0.3 --scheme upwind
+
+# 组合：自定义初始条件 + 边界条件
+python run_simulation.py --left_p 3.0 --right_p 0.05 --bc reflective --scheme tvd_minmod
 ```
 
 ---
@@ -287,6 +321,17 @@ simulation:
 |------|------|--------|------|------|
 | `t_final` | float | 0.2 | 0-1.0 | 仿真终止时间 |
 | `cfl` | float | 0.8 | 0.1-0.95 | CFL 数（受稳定性限制） |
+
+#### boundary（边界条件）
+
+```yaml
+boundary:
+  boundary_type: zero_gradient   # 边界条件类型
+```
+
+| 参数 | 类型 | 默认值 | 可选值 | 说明 |
+|------|------|--------|--------|------|
+| `boundary_type` | str | `zero_gradient` | `zero_gradient`, `reflective`, `periodic`, `transmissive` | 边界条件类型：零梯度外推（默认）/ 固壁反射 / 周期 / 透射 |
 
 #### schemes（数值格式列表）
 
@@ -469,7 +514,7 @@ print(f"L1(rho) = {errors['rho']['L1']:.6e}")
 | 网格生成 | `src/mesh_generator.py` | 一维均匀网格生成 |
 | 流场初始化 | `src/flow_initializer.py` | Sod 初始条件赋值 |
 | 有限差分格式 | `src/fd_schemes.py` | 9 种 FDM 格式实现 |
-| 边界处理 | `src/boundary_handler.py` | 零梯度外推边界 |
+| 边界处理 | `src/boundary_handler.py` | 四种边界条件（零梯度/反射/周期/透射） |
 | 时间推进 | `src/time_marcher.py` | CFL 条件时间步长计算 |
 | 精确解 | `src/exact_solver.py` | Riemann 精确解（Toro 2009） |
 | 结果输出 | `src/output_writer.py` | 时间戳归档数据输出 |

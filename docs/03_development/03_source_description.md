@@ -5,9 +5,9 @@
 | 指标 | 数值 |
 |------|------|
 | 编程语言 | Python 3.9+ |
-| 总代码行数 | ~2500行 |
+| 总代码行数 | ~2700行 |
 | 核心模块数 | 8个(src/) |
-| 单元测试数 | 34项 |
+| 单元测试数 | 39项 |
 | 数值格式 | 9种FDM格式 |
 | 第三方依赖 | 4个核心 + 2个开发 |
 
@@ -20,7 +20,7 @@ sod-shocktube-cfd/
 │   ├── mesh_generator.py         # 一维均匀网格生成 (~30行)
 │   ├── flow_initializer.py       # Sod初始条件与守恒变量转换 (~80行)
 │   ├── fd_schemes.py             # 9种FDM格式核心实现 (~1000行)
-│   ├── boundary_handler.py       # 零梯度外推边界条件 (~20行)
+│   ├── boundary_handler.py       # 多种边界条件 (zero_gradient/reflective/periodic/transmissive) (~100行)
 │   ├── time_marcher.py           # CFL条件与时间推进 (~50行)
 │   ├── exact_solver.py           # Riemann精确解 (Toro 2009) (~200行)
 │   ├── output_writer.py          # 结果输出与时间戳归档 (~80行)
@@ -28,7 +28,7 @@ sod-shocktube-cfd/
 ├── tests/                        # 单元测试 (~500行)
 │   ├── test_mesh.py              # 网格生成测试 (6项)
 │   ├── test_initialization.py    # 流场初始化测试 (9项)
-│   ├── test_boundary.py          # 边界条件测试 (8项)
+│   ├── test_boundary.py          # 边界条件测试 (13项)
 │   └── test_fd_schemes.py        # 数值格式测试 (11项)
 ├── run_simulation.py             # CLI主程序入口 (~200行)
 ├── bump_version.py               # 版本号管理工具 (~130行)
@@ -76,9 +76,13 @@ sod-shocktube-cfd/
 | TVD-Minmod | `tvd_minmod_step` | 二阶 | MUSCL重构 + Minmod限制器 + Roe通量 |
 
 ### 3.4 boundary_handler.py
-**功能**: 施加零梯度外推边界条件。  
-**输入/输出**: 守恒变量U(N, 3)。  
-**操作**: `U[0,:] = U[1,:]`, `U[-1,:] = U[-2,:]`。
+**功能**: 施加多种边界条件，支持4种可配置类型。  
+**输入/输出**: 守恒变量U(N, 3), 边界类型字符串bc_type。  
+**边界条件类型**:
+- `zero_gradient` (默认): 零梯度外推，`U[0,:]=U[1,:]`, `U[-1,:]=U[-2,:]`
+- `reflective`: 固壁反射，动量分量取反，密度和能量零梯度
+- `periodic`: 周期边界，`U[0,:]=U[-2,:]`, `U[-1,:]=U[1,:]`
+- `transmissive`: 透射边界，基于特征线的对外行波外推
 
 ### 3.5 time_marcher.py
 **功能**: 计算CFL条件约束的时间步长。  
@@ -153,10 +157,10 @@ flake8 >= 5.0.0              [MIT]           代码风格(仅dev)
 python -m build
 
 # 生成文件
-# dist/sod_shocktube_cfd-1.3.0-py3-none-any.whl
-# dist/sod_shocktube_cfd-1.3.0.tar.gz
+# dist/sod_shocktube_cfd-1.5.1-py3-none-any.whl
+# dist/sod_shocktube_cfd-1.5.1.tar.gz
 ```
 
 ---
 
-*文档版本: v1.0 | 更新日期: 2026-05-16*
+*文档版本: v1.5.1 | 更新日期: 2026-05-17*

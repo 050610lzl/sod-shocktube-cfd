@@ -1,6 +1,6 @@
 # 总体架构设计文档
 
-> 文档版本: v1.0  
+> 文档版本: v1.5.1  
 > 项目: 一维Sod激波管CFD求解器 (sod-shocktube-cfd)  
 > 文献依据: Sod (1978) [1], Toro (2009) [2], Laney (1998) [3], OneFlow-CFD [4]
 
@@ -33,7 +33,7 @@
 |  mesh_generator.py   - 一维均匀网格生成                      |
 |  flow_initializer.py - Sod初始条件 + 原始->守恒变量变换      |
 |  fd_schemes.py       - 9种数值格式 (单体步进函数)            |
-|  boundary_handler.py - 零梯度外推边界条件                    |
+|  boundary_handler.py - 多种边界条件 (zero_gradient/reflective/periodic/transmissive)               |
 |  time_marcher.py     - CFL时间步长 + 守恒性检查              |
 |  exact_solver.py     - Riemann精确解 (Toro 2009 第4章)       |
 +--------------------------------------------------------------+
@@ -70,7 +70,7 @@
 | 1 | mesh_generator | [mesh_generator.py](file:///e:/trae_project/a/src/mesh_generator.py) | 生成一维均匀网格 |
 | 2 | flow_initializer | [flow_initializer.py](file:///e:/trae_project/a/src/flow_initializer.py) | Sod初始条件设置, 原始变量->守恒变量转换 |
 | 3 | fd_schemes | [fd_schemes.py](file:///e:/trae_project/a/src/fd_schemes.py) | 9种数值格式实现 + 格式注册表 + 求解控制器 |
-| 4 | boundary_handler | [boundary_handler.py](file:///e:/trae_project/a/src/boundary_handler.py) | 零梯度外推边界条件 |
+| 4 | boundary_handler | [boundary_handler.py](file:///e:/trae_project/a/src/boundary_handler.py) | 多种边界条件 (zero_gradient/reflective/periodic/transmissive) |
 | 5 | time_marcher | [time_marcher.py](file:///e:/trae_project/a/src/time_marcher.py) | CFL时间步长计算, 时间推进, 守恒性检查 |
 | 6 | exact_solver | [exact_solver.py](file:///e:/trae_project/a/src/exact_solver.py) | Riemann问题精确解 (Newton-Raphson迭代) |
 | 7 | output_writer | [output_writer.py](file:///e:/trae_project/a/src/output_writer.py) | .npy 数据归档, 时间戳目录管理 |
@@ -284,14 +284,49 @@ dt = CFL * dx / max_i(|u_i| + c_i)
 
 ### 6.5 边界处理
 
-**零梯度外推** (依据 OneFlow-CFD [4], Laney 1998 [3]):
+**多种可配置边界条件** (依据 OneFlow-CFD [4], Laney 1998 [3]):
+
+支持以下4种边界条件类型，通过CLI `--bc`/`--boundary` 参数或YAML配置中的 `boundary_type` 项选择：
+
+#### (1) 零梯度外推 (zero_gradient，默认)
 
 ```
 左边界: U[0] = U[1]
 右边界: U[N-1] = U[N-2]
 ```
 
-对所有守恒变量分量 (rho, rho*u, rho*E) 统一施加。
+对所有守恒变量分量 (rho, rho*u, rho*E) 统一施加。物理上等效于假设边界两侧物理量一阶连续。
+
+#### (2) 固壁反射 (reflective)
+
+```
+左边界: u[0] = -u[1]（速度反向），rho[0] = rho[1], p[0] = p[1]
+右边界: u[N-1] = -u[N-2]（速度反向），rho[N-1] = rho[N-2], p[N-1] = p[N-2]
+```
+
+对守恒变量动量分量取反：`U[0, 1] = -U[1, 1]`（左边界），`U[N-1, 1] = -U[N-2, 1]`（右边界），其余分量按零梯度处理。
+
+#### (3) 周期边界 (periodic)
+
+```
+左边界: U[0] = U[N-2]（左边界从右端内部节点复制）
+右边界: U[N-1] = U[1]（右边界从左端内部节点复制）
+```
+
+适用于周期性流动问题，将计算域首尾相接。波从右边界传出会从左边界重新进入。
+
+#### (4) 透射边界 (transmissive)
+
+```
+左边界: U[0] = U[1]，同时在左边界计算一阶外推特征修正
+右边界: U[N-1] = U[N-2]，同时在右边界计算一阶外推特征修正
+```
+
+基于特征线方法，根据当地流动方向判断特征波的传入/传出方向，对外行波施加零梯度外推，对内行波保持自由流值。适用于稀疏波/激波尚未到达边界时的远场外推。
+
+#### 边界条件对Sod问题的适用性
+
+Sod激波管标准问题在 `t=0.2` 时，激波和稀疏波尚未到达边界，默认的 `zero_gradient` 是合理的近似。`transmissive` 对超音速出口边界更精确；`reflective` 和 `periodic` 适用于变型激波管问题或理论研究。
 
 ### 6.6 精确解算法 (Toro 2009 第4章)
 

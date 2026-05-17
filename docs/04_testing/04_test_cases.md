@@ -6,9 +6,9 @@
 |----------|----------|----------|------|
 | 网格生成 | 6 | test_mesh.py | ✅ 全部通过 |
 | 流场初始化 | 9 | test_initialization.py | ✅ 全部通过 |
-| 边界条件 | 8 | test_boundary.py | ✅ 全部通过 |
+| 边界条件 | 13 | test_boundary.py | ✅ 全部通过 |
 | 数值格式 | 11 | test_fd_schemes.py | ✅ 全部通过 |
-| **合计** | **34** | | **34/34 通过** |
+| **合计** | **39** | | **39/39 通过** |
 
 ## 二、网格生成测试 (test_mesh.py)
 
@@ -37,16 +37,21 @@
 
 ## 四、边界条件测试 (test_boundary.py)
 
-| 编号 | 用例名称 | 测试内容 | 预期结果 |
-|------|----------|----------|----------|
-| TC-BC-001 | test_left_boundary_extrapolation | 验证左边界零梯度 | U[0,:] == U[1,:] |
-| TC-BC-002 | test_right_boundary_extrapolation | 验证右边界零梯度 | U[-1,:] == U[-2,:] |
-| TC-BC-003 | test_boundary_preserves_positivity | 验证边界不产生负值 | 所有值 >= 0 |
-| TC-BC-004 | test_boundary_rho | 验证边界密度连续性 | rho边界合理 |
-| TC-BC-005 | test_boundary_u | 验证边界速度连续性 | u边界合理 |
-| TC-BC-006 | test_boundary_p | 验证边界压力连续性 | p边界合理 |
-| TC-BC-007 | test_idempotent | 验证重复施加边界不改变结果 | apply(apply(U)) == apply(U) |
-| TC-BC-008 | test_boundary_array_shape | 验证边界不改变数组形状 | shape不变 |
+| 编号 | 用例名称 | 测试内容 | 预期结果 | 适用边界类型 |
+|------|----------|----------|----------|:------------:|
+| TC-BC-001 | test_left_boundary_extrapolation | 验证左边界零梯度外推 | U[0,:] == U[1,:] | zero_gradient |
+| TC-BC-002 | test_right_boundary_extrapolation | 验证右边界零梯度外推 | U[-1,:] == U[-2,:] | zero_gradient |
+| TC-BC-003 | test_boundary_preserves_positivity | 验证边界不产生负值 | 所有值 >= 0 | 所有类型 |
+| TC-BC-004 | test_boundary_rho | 验证边界密度连续性 | rho边界合理 | zero_gradient |
+| TC-BC-005 | test_boundary_u | 验证边界速度连续性 | u边界合理 | zero_gradient |
+| TC-BC-006 | test_boundary_p | 验证边界压力连续性 | p边界合理 | zero_gradient |
+| TC-BC-007 | test_idempotent | 验证重复施加边界不改变结果 | apply(apply(U)) == apply(U) | 所有类型 |
+| TC-BC-008 | test_boundary_array_shape | 验证边界不改变数组形状 | shape不变 | 所有类型 |
+| TC-BC-009 | test_reflective_boundary | 验证固壁反射动量反号 | U[-1,1] = -U[-2,1], U[0,1] = -U[1,1] | reflective |
+| TC-BC-010 | test_periodic_boundary | 验证周期边界 | U[0] == U[-2], U[-1] == U[1] | periodic |
+| TC-BC-011 | test_transmissive_boundary | 验证透射边界二阶外推 | U[0] = 2U[1] - U[2] | transmissive |
+| TC-BC-012 | test_zero_gradient_default | 验证默认边界类型为零梯度 | boundary_type == 'zero_gradient' | zero_gradient |
+| TC-BC-013 | test_boundary_types_registry | 验证BOUNDARY_TYPES注册表 | 含4种类型: zero_gradient/reflective/periodic/transmissive | 所有类型 |
 
 ## 五、数值格式测试 (test_fd_schemes.py)
 
@@ -100,4 +105,4 @@
 
 ---
 
-*文档版本: v1.0 | 更新日期: 2026-05-16 | 测试通过率: 34/34 (100%)*
+*文档版本: v1.1 | 更新日期: 2026-05-17 | 测试通过率: 39/39 (100%)*
