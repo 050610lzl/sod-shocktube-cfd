@@ -24,6 +24,7 @@ physics:
 simulation:
   t_final: 0.2           # 仿真终止时间
   cfl: 0.8               # CFL数 (推荐: 0.8-0.95)
+  boundary_type: zero_gradient  # 边界条件类型 (zero_gradient/reflective/periodic/transmissive)
 
 # 数值格式 (Build §4.2)
 schemes:

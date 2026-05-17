@@ -995,7 +995,8 @@ def solve_with_scheme(
         dx,
         t_final=0.2,
         cfl=0.8,
-        gamma=GAMMA):
+        gamma=GAMMA,
+        boundary_type='zero_gradient'):
     """
     使用指定有限差分格式求解Sod激波管问题。
 
@@ -1009,6 +1010,9 @@ def solve_with_scheme(
         t_final: 仿真终止时间 (默认0.2)
         cfl: CFL数 (默认0.8)
         gamma: 比热比
+        boundary_type: 边界条件类型 (默认 'zero_gradient')
+                       可选: 'zero_gradient', 'reflective', 'periodic', 'transmissive'
+                       依据: Laney (1998) [3] §5.4, LeVeque (1992) [5] §7.1
 
     返回:
         U: 最终守恒变量
@@ -1037,6 +1041,7 @@ def solve_with_scheme(
     print(f"开始求解: {scheme['description']}")
     print(f"  文献依据: {scheme['reference']}")
     print(f"  格式精度: {scheme['order']}阶")
+    print(f"  边界条件: {boundary_type}")
 
     while t < t_final:
         dt = compute_dt(U, dx, cfl, gamma)
@@ -1045,7 +1050,7 @@ def solve_with_scheme(
             dt = t_final - t
 
         U_new = step_func(U, dx, dt, gamma)
-        U_new = apply_boundary_condition(U_new)
+        U_new = apply_boundary_condition(U_new, bc_type=boundary_type)
 
         U = U_new
         t += dt
