@@ -3,7 +3,7 @@
 [![CI](https://github.com/050610lzl/sod-shocktube-cfd/actions/workflows/ci.yml/badge.svg)](https://github.com/050610lzl/sod-shocktube-cfd/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.5.2-brightgreen)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.6.0-brightgreen)](VERSION)
 
 一维 Sod 激波管 CFD 求解器，基于有限差分法 (FDM) 实现 **9 种**经典数值格式，用于求解欧拉方程（可压缩无粘流体），并与 Riemann 精确解进行定量对比验证。
 

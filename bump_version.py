@@ -22,6 +22,8 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 VERSION_FILE = PROJECT_ROOT / "VERSION"
+PYPROJECT_FILE = PROJECT_ROOT / "pyproject.toml"
+README_FILE = PROJECT_ROOT / "README.md"
 
 
 def read_version():
@@ -44,7 +46,52 @@ def write_version(major, minor, patch, dry_run=False):
         return new_version
     VERSION_FILE.write_text(new_version + "\n")
     print(f"VERSION 文件已更新: {new_version}")
+    _sync_pyproject_toml(new_version, dry_run)
+    _sync_readme_badge(new_version, dry_run)
     return new_version
+
+
+def _sync_pyproject_toml(new_version, dry_run=False):
+    if not PYPROJECT_FILE.exists():
+        print(f"警告: 未找到 pyproject.toml ({PYPROJECT_FILE})，跳过同步")
+        return
+    content = PYPROJECT_FILE.read_text(encoding='utf-8')
+    import re
+    updated, count = re.subn(
+        r'^version\s*=\s*"[^"]*"',
+        f'version = "{new_version}"',
+        content,
+        flags=re.MULTILINE
+    )
+    if count > 0:
+        if dry_run:
+            print(f"[DRY-RUN] 将更新 pyproject.toml 版本号: {new_version}")
+        else:
+            PYPROJECT_FILE.write_text(updated, encoding='utf-8')
+            print(f"pyproject.toml 版本号已同步: {new_version}")
+    else:
+        print("警告: 未能在 pyproject.toml 中找到 version 字段")
+
+
+def _sync_readme_badge(new_version, dry_run=False):
+    if not README_FILE.exists():
+        print(f"警告: 未找到 README.md ({README_FILE})，跳过同步")
+        return
+    content = README_FILE.read_text(encoding='utf-8')
+    import re
+    updated, count = re.subn(
+        r'version-[\d.]+',
+        f'version-{new_version}',
+        content
+    )
+    if count > 0:
+        if dry_run:
+            print(f"[DRY-RUN] 将更新 README.md 版本徽章: {new_version}")
+        else:
+            README_FILE.write_text(updated, encoding='utf-8')
+            print(f"README.md 版本徽章已同步: {new_version}")
+    else:
+        print("警告: 未能在 README.md 中找到版本徽章")
 
 
 def create_git_tag(version, dry_run=False):

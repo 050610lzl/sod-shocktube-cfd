@@ -40,23 +40,21 @@ env/
 .DS_Store
 Thumbs.db
 
+# Generated/Diagnostic scripts (archived in tools/)
+tools/diagnostics/
+
 # Results (generated files, not source code)
 results/data/
 results/figures/
+results/exact/20*/
+results/exact/exact_solution_*.npy
 results/*.csv
 results/*.png
 results/*.npy
 results/*.log
-
-# Generated scripts (regeneration tools)
-regenerate_all_figures.py
-final_validation.py
-check_smooth_error.py
-diagnose_exact.py
-run_validation.py
-generate_correct_wave_structure.py
-run_cfl_scan.py
-run_all_schemes.py
+results/*.txt
+results/*.md
+results/*.pdf
 
 # Temporary files
 *.tmp

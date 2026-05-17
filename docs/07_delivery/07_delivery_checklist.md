@@ -5,9 +5,9 @@
 | 项目 | 内容 |
 |------|------|
 | 项目名称 | Sod Shock Tube CFD - 一维激波管有限差分法求解器 |
-| 文档版本 | v1.5.1 |
-| 发布日期 | 2026-05-16 |
-| 项目版本 | v1.5.1 |
+| 文档版本 | v1.5.2 |
+| 发布日期 | 2026-05-17 |
+| 项目版本 | v1.5.2 |
 | 文档编号 | DELIVERY-CHECKLIST-001 |
 
 ---
@@ -26,11 +26,7 @@
 | 8 | `output_writer.py` | `src/output_writer.py` | 时间戳归档数据输出 | [x] 已交付 |
 | 9 | `validator.py` | `src/validator.py` | 误差计算与可视化 | [x] 已交付 |
 | 10 | `run_simulation.py` | `run_simulation.py` | 主程序入口（带时间戳归档） | [x] 已交付 |
-| 11 | `main.py` | `main.py` | 主程序入口（简化版） | [x] 已交付 |
-| 12 | `sod_solver.py` | `sod_solver.py` | Sod求解器核心封装 | [x] 已交付 |
-| 13 | `utils.py` | `utils.py` | 通用工具函数 | [x] 已交付 |
-| 14 | `validation.py` | `validation.py` | 验证模块封装 | [x] 已交付 |
-| 15 | `bump_version.py` | `bump_version.py` | 语义化版本管理工具 | [x] 已交付 |
+| 11 | `bump_version.py` | `bump_version.py` | 语义化版本管理工具 | [x] 已交付 |
 
 ---
 
@@ -42,7 +38,10 @@
 | 17 | `test_mesh.py` | `tests/test_mesh.py` | 网格生成模块单元测试 | [x] 已交付 |
 | 18 | `test_initialization.py` | `tests/test_initialization.py` | 流场初始化模块单元测试 | [x] 已交付 |
 | 19 | `test_boundary.py` | `tests/test_boundary.py` | 边界条件模块单元测试 | [x] 已交付 |
-| 20 | `test_fd_schemes.py` | `tests/test_fd_schemes.py` | 有限差分格式模块单元测试 | [x] 已交付 |
+| 20 | `test_fd_schemes.py` | `tests/test_fd_schemes.py` | 21项有限差分格式单元测试 (9种格式全覆盖) | [x] 已交付 |
+| 21 | `test_integration.py` | `tests/test_integration.py` | 9种格式端到端集成测试 | [x] 已交付 |
+| 22 | `test_time_marcher.py` | `tests/test_time_marcher.py` | 时间推进模块单元测试 | [x] 已交付 |
+| 23 | `test_exact_solver.py` | `tests/test_exact_solver.py` | 精确解模块单元测试 | [x] 已交付 |
 
 ---
 
@@ -142,8 +141,8 @@
 
 | 类别 | 数量 | 状态 |
 |------|:----:|:----:|
-| 源码文件 | 15 | 全部交付 |
-| 测试文件 | 5 | 全部交付 |
+| 源码文件 | 11 | 全部交付 |
+| 测试文件 | 7 | 全部交付 |
 | 配置文件 | 1 | 已交付 |
 | 项目根文件 | 8 | 全部交付 |
 | CI/CD 配置 | 1 | 已交付 |

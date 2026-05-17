@@ -32,6 +32,12 @@ jobs:
             exit 1
           fi
           echo "Project version: v$VERSION"
+          PYPROJECT_VERSION=$(grep -oP 'version\s*=\s*"\K[^"]+' pyproject.toml | head -1)
+          if [ "$VERSION" != "$PYPROJECT_VERSION" ]; then
+            echo "ERROR: VERSION ($VERSION) != pyproject.toml version ($PYPROJECT_VERSION)"
+            exit 1
+          fi
+          echo "Version consistency check: PASSED"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -136,48 +142,4 @@ jobs:
 
       - name: Run all schemes integration test
         run: |
-          python -c "
-          import sys, numpy as np
-          sys.path.insert(0, '.')
-          from src.mesh_generator import generate_mesh
-          from src.flow_initializer import initialize_flow
-          from src.boundary_handler import apply_boundary_condition
-          from src.time_marcher import compute_dt
-          from src.fd_schemes import (
-              lax_friedrichs_step, lax_wendroff_step, macormack_step, upwind_step,
-              rusanov_step, godunov_step, roe_step, hllc_step, tvd_minmod_step
-          )
-
-          schemes = {
-              'lax_friedrichs': lax_friedrichs_step,
-              'lax_wendroff': lax_wendroff_step,
-              'macormack': macormack_step,
-              'upwind': upwind_step,
-              'rusanov': rusanov_step,
-              'godunov': godunov_step,
-              'roe': roe_step,
-              'hllc': hllc_step,
-              'tvd_minmod': tvd_minmod_step,
-          }
-
-          x, dx = generate_mesh(n_points=100)
-          for name, func in schemes.items():
-              U = initialize_flow(x)
-              t, t_final = 0.0, 0.2
-              steps = 0
-              while t < t_final:
-                  dt = compute_dt(U, dx, cfl=0.8)
-                  if t + dt > t_final:
-                      dt = t_final - t
-                  U = func(U, dx, dt)
-                  U = apply_boundary_condition(U)
-                  t += dt
-                  steps += 1
-              rho = U[:, 0]
-              p = (1.4 - 1.0) * (U[:, 2] - 0.5 * U[:, 1]**2 / rho)
-              assert np.all(rho > 0), f'{name}: negative density!'
-              assert np.all(p > 0), f'{name}: negative pressure!'
-              print(f'{name}: {steps} steps, PASSED')
-
-          print('All 9 schemes integration test: PASSED')
-          "
+          python -m pytest tests/test_integration.py -v --tb=short

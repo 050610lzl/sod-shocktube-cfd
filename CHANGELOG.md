@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.0] - 2026-05-17
+
+### Removed
+- 移除遗留代码模块 (sod_solver.py, utils.py, validation.py, main.py)
+- 清理 results/exact/ 28个旧时间戳目录
+
+### Added
+- 新增5种格式单元测试 (rusanov, godunov, roe, hllc, tvd_minmod) — 共10项
+- 新增 time_marcher 模块单元测试 (7项)
+- 新增 exact_solver 模块单元测试 (5项)
+- 新增 tests/test_integration.py 端到端集成测试 (20项)
+- bump_version.py 同步更新 pyproject.toml 和 README.md 徽章
+- CI 版本一致性检查 (VERSION vs pyproject.toml)
+
+### Changed
+- 项目结构重组：25个诊断脚本归档至 tools/diagnostics/
+- docs/ 诊断报告归档至 docs/99_diagnostics/，PNG图片归档至 docs/assets/images/
+- CI integration job 从内联脚本改为调用 tests/test_integration.py
+- 测试总数从 39 项增至 81 项
+
+### Fixed
+- 修复 pyproject.toml 版本号与 VERSION 不一致
+- 修复 requirements.txt 中 flake8 被注释
+- 修复 .gitignore 与实际项目结构不匹配
+- 修复 bump_version.py 文件编码问题 (GBK → UTF-8)
+
+## [1.5.2] - 2026-05-17
+
+### Changed
+- 代码架构清理：移除遗留代码 (sod_solver.py, utils.py, validation.py, main.py)
+- 项目结构整合：诊断脚本归档至 tools/diagnostics/，诊断文档归档至 docs/99_diagnostics/
+- 版本管理修复：bump_version.py 同步更新 pyproject.toml 和 README.md 徽章
+- results/exact/ 旧时间戳目录清理，保留最新结果
+
+### Fixed
+- 修复 pyproject.toml 版本号与 VERSION 不一致问题
+- 修复 requirements.txt 中 flake8 被注释问题
+- 修复 .gitignore 与实际项目结构不匹配
+
+## [1.5.1] - 2026-05-16
+
+### Added
+- docs/ 文档体系完善：新增各阶段文档子目录 (01_planning ~ 08_compliance)
+- 诊断报告与 PNG 图表归档至 docs/99_diagnostics/ 和 docs/assets/images/
+- CI lint job 新增 flake8 对 src/ 目录的代码风格检查
+
+### Changed
+- 项目最终报告与最终报告 PDF 移至 docs/07_delivery/
+- 测试报告 v1.0 移至 docs/04_testing/
+
 ## [1.5.0] - 2026-05-16
 
 ### Added
@@ -95,6 +145,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 34 项单元测试
 - 项目计划文档与构建文档
 
+[1.5.2]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.5.1...v1.5.2
+[1.5.1]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.2.0...v1.3.0

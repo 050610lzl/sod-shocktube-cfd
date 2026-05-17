@@ -15,6 +15,7 @@ import numpy as np
 from src.fd_schemes import (
     compute_flux, conservative_to_primitive, compute_jacobian,
     lax_friedrichs_step, lax_wendroff_step, macormack_step, upwind_step,
+    rusanov_step, godunov_step, roe_step, hllc_step, tvd_minmod_step,
     steger_warming_flux, GAMMA
 )
 from src.mesh_generator import generate_mesh
@@ -120,3 +121,85 @@ def test_lax_wendroff_symmetry():
     dt = compute_dt(U, dx, cfl=0.8)
     U_new = lax_wendroff_step(U, dx, dt)
     assert not np.any(np.isnan(U_new))
+
+
+def test_rusanov_step():
+    x, dx, dt, U = setup()
+    U_new = rusanov_step(U, dx, dt)
+    assert not np.any(np.isnan(U_new))
+    assert not np.any(np.isinf(U_new))
+    assert np.all(U_new[1:-1, 0] > 0)
+
+
+def test_godunov_step():
+    x, dx, dt, U = setup()
+    U_new = godunov_step(U, dx, dt)
+    assert not np.any(np.isnan(U_new))
+    assert not np.any(np.isinf(U_new))
+    assert np.all(U_new[1:-1, 0] > 0)
+
+
+def test_roe_step():
+    x, dx, dt, U = setup()
+    U_new = roe_step(U, dx, dt)
+    assert not np.any(np.isnan(U_new))
+    assert not np.any(np.isinf(U_new))
+    assert np.all(U_new[1:-1, 0] > 0)
+
+
+def test_hllc_step():
+    x, dx, dt, U = setup()
+    U_new = hllc_step(U, dx, dt)
+    assert not np.any(np.isnan(U_new))
+    assert not np.any(np.isinf(U_new))
+    assert np.all(U_new[1:-1, 0] > 0)
+
+
+def test_tvd_minmod_step():
+    x, dx, dt, U = setup()
+    U = apply_boundary_condition(U)
+    U_new = tvd_minmod_step(U, dx, dt)
+    assert not np.any(np.isnan(U_new))
+    assert not np.any(np.isinf(U_new))
+    assert np.all(U_new[2:-2, 0] > 0)
+
+
+def test_rusanov_conservation():
+    x, dx, dt, U = setup()
+    U_new = rusanov_step(U, dx, dt)
+    mass_before = np.sum(U[1:-1, 0]) * dx
+    mass_after = np.sum(U_new[1:-1, 0]) * dx
+    assert abs(mass_after - mass_before) / abs(mass_before) < 0.01
+
+
+def test_godunov_conservation():
+    x, dx, dt, U = setup()
+    U_new = godunov_step(U, dx, dt)
+    mass_before = np.sum(U[1:-1, 0]) * dx
+    mass_after = np.sum(U_new[1:-1, 0]) * dx
+    assert abs(mass_after - mass_before) / abs(mass_before) < 0.01
+
+
+def test_roe_conservation():
+    x, dx, dt, U = setup()
+    U_new = roe_step(U, dx, dt)
+    mass_before = np.sum(U[1:-1, 0]) * dx
+    mass_after = np.sum(U_new[1:-1, 0]) * dx
+    assert abs(mass_after - mass_before) / abs(mass_before) < 0.01
+
+
+def test_hllc_conservation():
+    x, dx, dt, U = setup()
+    U_new = hllc_step(U, dx, dt)
+    mass_before = np.sum(U[1:-1, 0]) * dx
+    mass_after = np.sum(U_new[1:-1, 0]) * dx
+    assert abs(mass_after - mass_before) / abs(mass_before) < 0.01
+
+
+def test_tvd_minmod_conservation():
+    x, dx, dt, U = setup()
+    U = apply_boundary_condition(U)
+    U_new = tvd_minmod_step(U, dx, dt)
+    mass_before = np.sum(U[1:-1, 0]) * dx
+    mass_after = np.sum(U_new[1:-1, 0]) * dx
+    assert abs(mass_after - mass_before) / abs(mass_before) < 0.05
