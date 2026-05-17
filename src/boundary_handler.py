@@ -11,8 +11,6 @@
 文献: Laney (1998) [3], LeVeque (1992) [5], Anderson (1984) [2], OneFlow-CFD [4]
 """
 
-import numpy as np
-
 # 支持的边界条件类型注册表
 # 依据: Laney (1998) [3] §5.4 - 边界条件分类
 BOUNDARY_TYPES = {
