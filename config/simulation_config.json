@@ -1,0 +1,42 @@
+{
+  "mesh": {
+    "n_points": 100,
+    "x_left": 0.0,
+    "x_right": 1.0
+  },
+  "physics": {
+    "gamma": 1.4,
+    "diaphragm_pos": 0.5,
+    "left_state": {
+      "rho": 1.0,
+      "u": 0.0,
+      "p": 1.0
+    },
+    "right_state": {
+      "rho": 0.125,
+      "u": 0.0,
+      "p": 0.1
+    }
+  },
+  "simulation": {
+    "t_final": 0.2,
+    "cfl": 0.8,
+    "boundary_type": "zero_gradient"
+  },
+  "schemes": [
+    "lax_friedrichs",
+    "lax_wendroff",
+    "macormack",
+    "upwind",
+    "rusanov",
+    "godunov",
+    "roe",
+    "hllc"
+  ],
+  "output": {
+    "data_dir": "results/data",
+    "exact_dir": "results/exact",
+    "figures_dir": "results/figures",
+    "error_report": "results/error_report.csv"
+  }
+}

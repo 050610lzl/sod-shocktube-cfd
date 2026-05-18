@@ -1,0 +1,37 @@
+{
+  "mesh": {
+    "n_points": 200,
+    "x_left": 0.0,
+    "x_right": 1.0
+  },
+  "physics": {
+    "gamma": 1.4,
+    "diaphragm_pos": 0.5,
+    "left_state": {
+      "rho": 1.0,
+      "u": 0.0,
+      "p": 10.0
+    },
+    "right_state": {
+      "rho": 0.125,
+      "u": 0.0,
+      "p": 0.1
+    }
+  },
+  "simulation": {
+    "t_final": 0.15,
+    "cfl": 0.5,
+    "boundary_type": "transmissive"
+  },
+  "schemes": [
+    "godunov",
+    "roe",
+    "hllc"
+  ],
+  "output": {
+    "data_dir": "results/data",
+    "exact_dir": "results/exact",
+    "figures_dir": "results/figures",
+    "error_report": "results/error_report_custom.csv"
+  }
+}

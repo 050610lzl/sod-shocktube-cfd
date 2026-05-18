@@ -45,7 +45,7 @@ def write_version(major, minor, patch, dry_run=False):
         print(f"[DRY-RUN] 将写入 VERSION 文件: {new_version}")
         return new_version
     with open(VERSION_FILE, 'w', newline='\n', encoding='utf-8') as f:
-    f.write(new_version + "\n")
+        f.write(new_version + "\n")
     print(f"VERSION 文件已更新: {new_version}")
     _sync_pyproject_toml(new_version, dry_run)
     _sync_readme_badge(new_version, dry_run)

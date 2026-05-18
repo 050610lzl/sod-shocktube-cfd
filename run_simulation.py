@@ -9,6 +9,7 @@
 
 import os
 import sys
+import json
 import argparse
 import yaml
 import datetime
@@ -32,9 +33,74 @@ from src.boundary_handler import BOUNDARY_TYPES
 
 
 def load_config(config_path='config/simulation_config.yaml'):
-    """加载配置文件。"""
     with open(config_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
+
+
+def load_json_config(config_path='config/simulation_config.json'):
+    with open(config_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def load_any_config(config_path):
+    """根据文件扩展名自动选择 YAML (.yaml/.yml) 或 JSON (.json) 加载器。"""
+    ext = os.path.splitext(config_path)[1].lower()
+    if ext in ('.json',):
+        return load_json_config(config_path)
+    elif ext in ('.yaml', '.yml'):
+        return load_config(config_path)
+    else:
+        raise ValueError(f"不支持的配置文件格式: {ext}，请使用 .yaml / .yml / .json")
+
+
+REQUIRED_CONFIG_KEYS = ['mesh', 'physics', 'simulation', 'schemes', 'output']
+ALLOWED_CFL_RANGE = (0.01, 1.0)
+ALLOWED_BOUNDARY_TYPES = list(BOUNDARY_TYPES.keys())
+ALLOWED_SCHEME_NAMES = list(FD_SCHEMES.keys())
+
+
+def validate_config(config, config_path='<config>'):
+    errors = []
+    for key in REQUIRED_CONFIG_KEYS:
+        if key not in config:
+            errors.append(f"缺少必需配置节: '{key}'")
+
+    if errors:
+        raise ValueError(f"配置文件 [{config_path}] 验证失败:\n" + "\n".join(f"  - {e}" for e in errors))
+
+    mesh_cfg = config.get('mesh', {})
+    if not isinstance(mesh_cfg.get('n_points'), int) or mesh_cfg['n_points'] < 10:
+        errors.append(f"mesh.n_points 必须为 >= 10 的整数, 当前: {mesh_cfg.get('n_points')}")
+
+    phys_cfg = config.get('physics', {})
+    gamma = phys_cfg.get('gamma', 1.4)
+    if not (0.1 < gamma <= 5.0):
+        errors.append(f"physics.gamma 必须在 (0.1, 5.0] 范围, 当前: {gamma}")
+
+    sim_cfg = config.get('simulation', {})
+    cfl = sim_cfg.get('cfl', 0.8)
+    if not (ALLOWED_CFL_RANGE[0] <= cfl <= ALLOWED_CFL_RANGE[1]):
+        errors.append(f"simulation.cfl 必须在 [{ALLOWED_CFL_RANGE[0]}, {ALLOWED_CFL_RANGE[1]}] 范围, 当前: {cfl}")
+    t_final = sim_cfg.get('t_final', 0.2)
+    if not (0.001 <= t_final <= 10.0):
+        errors.append(f"simulation.t_final 必须在 [0.001, 10.0] 范围, 当前: {t_final}")
+
+    bc = sim_cfg.get('boundary_type', 'zero_gradient')
+    if bc not in ALLOWED_BOUNDARY_TYPES:
+        errors.append(f"simulation.boundary_type 必须为 {ALLOWED_BOUNDARY_TYPES} 之一, 当前: {bc}")
+
+    schemes = config.get('schemes', [])
+    if not isinstance(schemes, list) or len(schemes) == 0:
+        errors.append("schemes 必须为非空列表")
+    else:
+        for s in schemes:
+            if s not in ALLOWED_SCHEME_NAMES:
+                errors.append(f"schemes 中包含未知格式 '{s}', 允许值: {ALLOWED_SCHEME_NAMES}")
+
+    if errors:
+        raise ValueError(f"配置文件 [{config_path}] 验证失败:\n" + "\n".join(f"  - {e}" for e in errors))
+
+    return config
 
 
 def run_simulation(config=None, scheme_list=None, n_points=None, cfl=None,
@@ -207,10 +273,11 @@ def run_simulation(config=None, scheme_list=None, n_points=None, cfl=None,
 
 
 def main():
-    """命令行入口。"""
     parser = argparse.ArgumentParser(description='一维Sod激波管CFD求解器 (有限差分法)')
     parser.add_argument('--config', type=str, default='config/simulation_config.yaml',
-                        help='配置文件路径')
+                        help='配置文件路径 (.yaml / .yml / .json 自动检测)')
+    parser.add_argument('--config-json', type=str, default=None,
+                        help='JSON配置文件路径 (等同于 --config xxx.json)')
     parser.add_argument('--n_points', type=int, default=None,
                         help='网格节点数 (覆盖配置文件)')
     parser.add_argument('--cfl', type=float, default=None,
@@ -237,7 +304,9 @@ def main():
 
     args = parser.parse_args()
 
-    config = load_config(args.config)
+    config_path = args.config_json if args.config_json else args.config
+    config = load_any_config(config_path)
+    validate_config(config, config_path)
 
     scheme_list = None
     if args.scheme:
