@@ -26,7 +26,7 @@
 | TS-08 | 接触间断过于模糊 | 低 |
 | TS-09 | 激波附近数值振荡 | 中 |
 | TS-10 | 仿真时间过长 | 低 |
-| TS-11 | YAML 配置文件解析错误 | 中 |
+| TS-11 | YAML/JSON 配置文件解析错误 | 中 |
 | TS-12 | pytest 测试找不到模块 | 中 |
 | TS-13 | 内存溢出 | 低 |
 | TS-14 | matplotlib 图形保存失败 | 低 |
@@ -524,12 +524,14 @@ python run_simulation.py --schemes lax_friedrichs upwind rusanov
 
 ---
 
-## TS-11: YAML 配置文件解析错误
+## TS-11: YAML/JSON 配置文件解析错误
 
 ### 症状
 
 ```python
-yaml.parser.ParserError: while parsing a block mapping
+yaml.parser.ParserError: while parsing a block mapping  # YAML
+# 或
+json.JSONDecodeError: ...     # JSON
 # 或
 KeyError: 'mesh'
 ```
@@ -537,7 +539,9 @@ KeyError: 'mesh'
 ### 根因
 
 - YAML 缩进错误（YAML 对缩进敏感）
-- 缺少必需的配置键
+- JSON 括号不匹配、缺少逗号或尾部逗号
+- 缺少必需的配置节 (`mesh`, `physics`, `simulation`, `schemes`, `output`)
+- 参数值超出合法范围（通过 `validate_config()` 检测）
 - 文件编码问题
 
 ### 解决方案
@@ -546,14 +550,18 @@ KeyError: 'mesh'
 # 验证 YAML 语法
 python -c "import yaml; yaml.safe_load(open('config/simulation_config.yaml'))"
 
+# 验证 JSON 语法
+python -m json.tool config/simulation_config.json > /dev/null
+
 # 恢复默认配置
-git checkout config/simulation_config.yaml
+git checkout config/simulation_config.yaml config/simulation_config.json
 ```
 
 ### 预防措施
 
-- 参考默认配置文件 `config/simulation_config.yaml` 的格式
-- 使用 YAML 编辑器插件检查语法
+- 参考默认配置文件 `config/simulation_config.yaml` 或 `config/simulation_config.json` 的格式
+- 使用编辑器插件检查 YAML/JSON 语法
+- 查看 `validate_config()` 的错误消息获取具体约束信息
 
 ---
 

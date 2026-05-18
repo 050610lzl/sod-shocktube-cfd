@@ -33,7 +33,7 @@
 | pip | 21.0 | - | 包管理器 |
 | numpy | 1.21.0 | <2.0.0 | 数值计算（数组操作、线性代数） |
 | matplotlib | 3.5.0 | - | 可视化绘图 |
-| pyyaml | 6.0 | - | YAML 配置文件解析 |
+| pyyaml | 6.0 | - | YAML 配置文件解析 (JSON 使用标准库 json) |
 | scipy | 1.7.0 | - | 科学计算（Brent 求根算法等） |
 
 ### 1.3 硬件要求
@@ -236,6 +236,7 @@ python run_simulation.py --cfl 0.9
 
 # 使用自定义配置文件
 python run_simulation.py --config my_config.yaml
+python run_simulation.py --config-json my_config.json  # v1.7.0+
 ```
 
 #### 方式二：使用 main.py（简化版，固定目录输出）

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2026-05-17
+
+### Added
+- JSON 配置文件支持: `--config-json` CLI 参数 + 自动格式检测 (.yaml/.yml/.json)
+- 配置文件参数验证: `validate_config()` 检查 cfl/gamma/schemes/boundary_type/n_points/t_final
+- 3 个示例 JSON 配置: 默认Sod问题 / 自定义初边值条件 / HPC高分辨率
+- 18 项配置加载与验证测试 (tests/test_config.py)
+
+### Changed
+- `load_config()` → `load_any_config()` 自动检测 YAML/JSON 格式
+- `--config` 参数现在支持 .json 扩展名
+- 测试总数从 81 项增至 99 项
+
 ## [1.6.0] - 2026-05-17
 
 ### Removed
@@ -145,6 +158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 34 项单元测试
 - 项目计划文档与构建文档
 
+[1.7.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.5.2...v1.6.0
 [1.5.2]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/050610lzl/sod-shocktube-cfd/compare/v1.5.0...v1.5.1

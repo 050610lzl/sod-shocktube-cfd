@@ -125,7 +125,7 @@ pip install .
 此命令将安装 `pyproject.toml` 中 `dependencies` 列出的核心依赖:
 - `numpy>=1.21.0,<2.0.0`
 - `matplotlib>=3.5.0`
-- `pyyaml>=6.0`
+- `pyyaml>=6.0`（JSON 通过标准库 `json` 解析，无需额外依赖）
 - `scipy>=1.7.0`
 
 ### 4.2 安装测试和开发依赖
@@ -384,7 +384,7 @@ python --version
 python -c "import numpy; print('numpy:', numpy.__version__)"
 python -c "import scipy; print('scipy:', scipy.__version__)"
 python -c "import matplotlib; print('matplotlib:', matplotlib.__version__)"
-python -c "import yaml; print('pyyaml:', yaml.__version__)"
+python -c "import yaml; print('YAML OK'); import json; print('JSON OK')"
 
 # 3. 项目模块
 python -c "from src import generate_mesh, initialize_flow, FD_SCHEMES, sod_exact_solution; print('All imports OK')"

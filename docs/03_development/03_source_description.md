@@ -33,7 +33,10 @@ sod-shocktube-cfd/
 ├── run_simulation.py             # CLI主程序入口 (~200行)
 ├── bump_version.py               # 版本号管理工具 (~130行)
 ├── config/
-│   └── simulation_config.yaml    # 仿真参数配置文件
+│   ├── simulation_config.yaml            # YAML 仿真参数配置
+│   ├── simulation_config.json            # JSON 仿真参数配置 (v1.7.0+)
+│   ├── simulation_config_custom_sod.json # 自定义初始条件 JSON 配置
+│   └── simulation_config_high_res.json   # 高分辨率 JSON 配置
 ├── pyproject.toml                # Python包配置(PEP 517/518/621)
 ├── requirements.txt              # 依赖清单
 └── docs/                         # 软件交付文档 (~40+份)
@@ -105,7 +108,7 @@ sod-shocktube-cfd/
 ## 四、数据流
 
 ```
-config/YAML → run_simulation.py
+config/YAML/JSON → run_simulation.py (load_any_config 自动检测格式)
                     │
     ┌───────────────┼───────────────┐
     ▼               ▼               ▼
@@ -134,7 +137,7 @@ mesh_generator  flow_initializer  exact_solver
 numpy >= 1.21.0, < 2.0.0    [BSD-3-Clause]  数值计算核心
 scipy >= 1.7.0               [BSD-3-Clause]  brentq求根(Riemann精确解)
 matplotlib >= 3.5.0          [PSF-based]     可视化绘图
-pyyaml >= 6.0                [MIT]           YAML配置解析
+pyyaml >= 6.0                [MIT]           YAML配置解析 (JSON使用标准库)
 pytest >= 7.0.0              [MIT]           测试框架(仅test)
 flake8 >= 5.0.0              [MIT]           代码风格(仅dev)
 ```

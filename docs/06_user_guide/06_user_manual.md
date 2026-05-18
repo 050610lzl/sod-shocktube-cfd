@@ -68,7 +68,7 @@ Sod 激波管是检验 CFD 数值格式对间断捕捉能力的"Hello World"级�
 - 定量误差分析：L1、L2、Linf 三种误差范数
 - 可视化对比：密度、速度、压力的数值解与精确解对比图
 - 时间戳归档：每次运行自动以时间戳归档，避免数据覆盖
-- YAML 配置：通过配置文件控制所有仿真参数
+- YAML/JSON 配置：通过配置文件控制所有仿真参数，支持自动格式检测
 
 ---
 
@@ -114,7 +114,7 @@ python -c "from src.mesh_generator import generate_mesh; print('OK')"
 python -m pytest tests/ -v --tb=short
 ```
 
-预期所有 39 项测试通过。
+预期所有 99 项测试通过。
 
 ---
 
@@ -181,7 +181,8 @@ python run_simulation.py [OPTIONS]
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `--config` | str | `config/simulation_config.yaml` | 配置文件路径 |
+| `--config` | str | `config/simulation_config.yaml` | 配置文件路径 (.yaml / .yml / .json 自动检测) |
+| `--config-json` | str | `None` | JSON 配置文件路径 (v1.7.0+) |
 | `--n_points` | int | `None`（使用配置文件值） | 网格节点数，覆盖配置文件 |
 | `--cfl` | float | `None`（使用配置文件值） | CFL 数，覆盖配置文件 |
 | `--scheme` | str | `None` | 指定单个格式运行 |
@@ -194,21 +195,6 @@ python run_simulation.py [OPTIONS]
 | `--right_u` | float | `None`（使用配置文件值） | 右态速度，覆盖配置文件 |
 | `--right_p` | float | `None`（使用配置文件值） | 右态压力，覆盖配置文件 |
 | `--diaphragm` | float | `None`（使用配置文件值） | 隔膜位置，覆盖配置文件 |
-
-### 4.2 main.py 参数
-
-```bash
-python main.py [OPTIONS]
-```
-
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `--scheme` | str | `all` | 选择求解格式（`all` 或格式名称） |
-| `--n_points` | int | `100` | 网格节点数 |
-| `--cfl` | float | `0.8` | CFL 数 |
-| `--t_final` | float | `0.2` | 仿真终止时间 |
-| `--gamma` | float | `1.4` | 比热比 |
-| `--output_dir` | str | `results` | 输出目录 |
 
 ### 4.3 命令行示例
 
@@ -230,6 +216,10 @@ python run_simulation.py --schemes lax_friedrichs roe hllc
 
 # 自定义配置
 python run_simulation.py --config my_config.yaml --n_points 400 --cfl 0.9
+
+# JSON 配置文件 (v1.7.0+)
+python run_simulation.py --config config/simulation_config.json
+python run_simulation.py --config-json config/simulation_config_custom_sod.json
 
 # 网格收敛性研究（批量运行）
 python run_simulation.py --n_points 50
@@ -261,11 +251,17 @@ python run_simulation.py --left_p 3.0 --right_p 0.05 --bc reflective --scheme tv
 
 ## 5. 配置文件详解
 
+本项目支持 **YAML** 和 **JSON** 两种配置文件格式，通过 `load_any_config()` 自动检测文件扩展名。
+配置文件加载时自动执行参数合法性验证 (`validate_config()`)。
+
 ### 5.1 配置文件位置
 
-`config/simulation_config.yaml`
+- YAML: `config/simulation_config.yaml`（默认）
+- JSON: `config/simulation_config.json`
+- 自定义初始条件 JSON: `config/simulation_config_custom_sod.json`
+- 高分辨率 JSON: `config/simulation_config_high_res.json`
 
-### 5.2 配置项说明
+### 5.2 配置项说明（YAML 格式）
 
 #### mesh（网格参数）
 
@@ -367,6 +363,41 @@ output:
 | `figures_dir` | str | `results/figures` | 对比图输出目录 |
 | `error_report` | str | `results/error_report.csv` | 误差报告文件路径 |
 
+### 5.3 JSON 格式等价配置 (v1.7.0+)
+
+```json
+{
+  "mesh": {"n_points": 100, "x_left": 0.0, "x_right": 1.0},
+  "physics": {
+    "gamma": 1.4, "diaphragm_pos": 0.5,
+    "left_state": {"rho": 1.0, "u": 0.0, "p": 1.0},
+    "right_state": {"rho": 0.125, "u": 0.0, "p": 0.1}
+  },
+  "simulation": {"t_final": 0.2, "cfl": 0.8, "boundary_type": "zero_gradient"},
+  "schemes": ["lax_friedrichs", "roe", "hllc"],
+  "output": {
+    "data_dir": "results/data", "exact_dir": "results/exact",
+    "figures_dir": "results/figures", "error_report": "results/error_report.csv"
+  }
+}
+```
+
+JSON 配置文件的使用方式与 YAML 完全相同。可通过 `--config` 或 `--config-json` 参数加载。
+
+### 5.4 参数验证规则
+
+配置文件加载时会自动触发 `validate_config()` 校验：
+
+| 参数 | 约束 | 错误时的处理 |
+|------|------|:--:|
+| 必需节 | `mesh`, `physics`, `simulation`, `schemes`, `output` | 抛出 ValueError |
+| `mesh.n_points` | > 10 的整数 | 抛出 ValueError |
+| `physics.gamma` | (0.1, 5.0] | 抛出 ValueError |
+| `simulation.cfl` | [0.01, 1.0] | 抛出 ValueError |
+| `simulation.t_final` | [0.001, 10.0] | 抛出 ValueError |
+| `simulation.boundary_type` | 4 种已注册类型之一 | 抛出 ValueError |
+| `schemes` | 非空列表，每项在 9 种已注册格式中 | 抛出 ValueError |
+
 ---
 
 ## 6. 结果解读
@@ -447,10 +478,10 @@ python run_simulation.py --n_points 200
 
 ### 7.3 自定义初始条件
 
-编辑 `config/simulation_config.yaml`，修改 `left_state` 和 `right_state`：
+编辑配置文件（YAML 或 JSON），修改 `left_state` 和 `right_state`：
 
 ```yaml
-# 自定义 Sod 变体问题（压力比增大）
+# YAML: 自定义 Sod 变体问题（压力比增大）
 physics:
   left_state:
     rho: 1.0

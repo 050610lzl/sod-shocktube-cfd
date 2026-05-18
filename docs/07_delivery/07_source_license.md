@@ -104,7 +104,7 @@ SOFTWARE.
 |------|------|
 | **许可证** | MIT |
 | **版本要求** | >=6.0 |
-| **用途** | YAML 配置文件解析 |
+| **用途** | YAML 配置文件解析（JSON 使用标准库 json，无需额外许可证） |
 | **许可证全文** | https://github.com/yaml/pyyaml/blob/main/LICENSE |
 | **版权方** | Kirill Simonov |
 

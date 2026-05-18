@@ -97,7 +97,10 @@ $$\begin{cases} (\rho_L, u_L, p_L) = (1.0, 0.0, 1.0), & 0 \leq x < 0.5 \quad \te
 ```
 sod_shocktube_fdm/
 ├── config/                      # 配置文件目录
-│   └── simulation_config.yaml   # 仿真参数配置文件（CFL、网格、终止时间等）
+│   ├── simulation_config.yaml            # YAML 仿真参数配置
+│   ├── simulation_config.json            # JSON 仿真参数配置 (v1.7.0+)
+│   ├── simulation_config_custom_sod.json # 自定义初始条件 JSON 配置
+│   └── simulation_config_high_res.json   # 高分辨率 JSON 配置
 ├── src/                         # 源代码目录
 │   ├── __init__.py              # 包初始化文件
 │   ├── mesh_generator.py        # 网格生成模块

@@ -80,24 +80,32 @@ CFL = max(|u| + c) * dt / dx
 
 **方式 A: 修改配置文件**（推荐）
 
-编辑 `config/simulation_config.yaml`：
+YAML (`config/simulation_config.yaml`) 或 JSON (`config/simulation_config.json`)：
 
 ```yaml
+# YAML 格式
 physics:
   left_state:
-    rho: 1.0    # 修改左态密度
-    u: 0.0      # 修改左态速度
-    p: 2.0      # 修改左态压力（增大压力比）
+    rho: 1.0
+    u: 0.0
+    p: 2.0
   right_state:
     rho: 0.125
     u: 0.0
     p: 0.1
 ```
 
+或使用 JSON 格式 (`config/simulation_config_custom_sod.json`):
+
+```json
+{"physics": {"left_state": {"rho": 1.0, "u": 0.0, "p": 2.0},
+              "right_state": {"rho": 0.125, "u": 0.0, "p": 0.1}}}
+```
+
 **方式 B: 命令行参数**（v1.5.1 新增）
 
 ```bash
-# 直接通过 CLI 覆盖初始条件，无需修改 YAML
+# 直接通过 CLI 覆盖初始条件，无需修改配置文件
 python run_simulation.py --left_rho 1.0 --left_u 0.0 --left_p 5.0 \
     --right_rho 0.125 --right_u 0.0 --right_p 0.1 \
     --diaphragm 0.5 --cfl 0.5
@@ -439,7 +447,7 @@ ls results/figures/20260516_230000/
 
 **答**: 项目支持 4 种边界条件类型（v1.5.1 新增），选择建议如下：
 
-| 边界类型 | CLI / YAML 参数值 | 适用场景 | 典型行为 |
+| 边界类型 | CLI / YAML / JSON 参数值 | 适用场景 | 典型行为 |
 |----------|:-----------------:|----------|----------|
 | 零梯度外推 | `zero_gradient`（默认） | 标准 Sod 问题、开放出口 | U[0] = U[1], U[-1] = U[-2]（一阶外推） |
 | 固壁反射 | `reflective` | 管道端壁、对称面、固壁边界 | 密度/能量对称，动量反号（模拟壁面反弹） |
@@ -455,8 +463,12 @@ python run_simulation.py --boundary periodic
 
 # YAML 配置方式
 # config/simulation_config.yaml:
-# boundary:
+# simulation:
 #   boundary_type: transmissive
+
+# JSON 配置方式 (v1.7.0+)
+# config/simulation_config.json:
+# {"simulation": {"boundary_type": "transmissive"}}
 ```
 
 **选择建议**：
@@ -470,9 +482,9 @@ python run_simulation.py --boundary periodic
 
 ---
 
-### FAQ-26: 如何自定义初始条件？（CLI vs YAML）
+### FAQ-26: 如何设置仿真参数？（CLI vs YAML vs JSON）
 
-**答**: v1.5.1 提供了两种方式自定义 Sod 激波管的初始条件：
+**答**: 项目支持三种方式配置仿真参数：
 
 **方式 A: 命令行参数**（适合快速实验，v1.5.1 新增）
 
@@ -509,14 +521,25 @@ physics:
   left_state:
     rho: 1.0
     u: 0.0
-    p: 3.0       # 增大高压侧压力
+    p: 3.0
   right_state:
-    rho: 0.1      # 降低低压侧密度
+    rho: 0.1
     u: 0.0
-    p: 0.05      # 降低低压侧压力
+    p: 0.05
 ```
 
-**优先级**：CLI 参数 > YAML 配置文件。当 CLI 未指定时，回退到 YAML 值。
+**方式 C: JSON 配置文件** (v1.7.0+)
+
+```bash
+python run_simulation.py --config-json config/simulation_config_custom_sod.json
+```
+
+```json
+{"physics": {"left_state": {"rho": 1.0, "u": 0.0, "p": 3.0},
+              "right_state": {"rho": 0.1, "u": 0.0, "p": 0.05}}}
+```
+
+**优先级**：CLI 参数 > 配置文件 (YAML 与 JSON 平级)。当 CLI 未指定时，回退到配置文件值。
 
 **典型变体问题**：
 

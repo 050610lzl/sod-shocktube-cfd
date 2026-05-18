@@ -4,7 +4,7 @@ build-backend = "setuptools.backends._legacy:_Backend"
 
 [project]
 name = "sod-shocktube-cfd"
-version = "1.7.0"
+version = "1.6.0"
 description = "一维Sod激波管CFD求解器 - 基于有限差分法的9种经典数值格式实现"
 readme = "README.md"
 license = {text = "MIT"}

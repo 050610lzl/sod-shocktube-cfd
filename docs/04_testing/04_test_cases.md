@@ -8,7 +8,7 @@
 | 流场初始化 | 9 | test_initialization.py | ✅ 全部通过 |
 | 边界条件 | 13 | test_boundary.py | ✅ 全部通过 |
 | 数值格式 | 11 | test_fd_schemes.py | ✅ 全部通过 |
-| **合计** | **39** | | **39/39 通过** |
+| **合计** | **99** | | **99/99 通过** |
 
 ## 二、网格生成测试 (test_mesh.py)
 
@@ -93,7 +93,7 @@
 | TC-PEND-007 | test_hllc_step | P3 | HLLC格式独立单步测试 |
 | TC-PEND-008 | test_tvd_minmod_step | P3 | TVD-Minmod格式独立单步测试 |
 | TC-PEND-009 | test_exact_solver_consistency | P3 | 精确解自洽性验证 |
-| TC-PEND-010 | test_config_loading | P3 | YAML配置文件加载测试 |
+| TC-CFG-001 | test_load_yaml_config | P3 | YAML/JSON 配置文件加载与验证 |
 | TC-PEND-011 | test_output_writer | P3 | 输出写入功能测试 |
 | TC-PEND-012 | test_validator_errors | P3 | 误差计算正确性测试 |
 | TC-PEND-013 | test_cfl_edge_cases | P3 | CFL=0.1, 0.9边界情况 |
@@ -105,4 +105,4 @@
 
 ---
 
-*文档版本: v1.1 | 更新日期: 2026-05-17 | 测试通过率: 39/39 (100%)*
+*文档版本: v1.1 | 更新日期: 2026-05-17 | 测试通过率: 99/99 (100%)*
