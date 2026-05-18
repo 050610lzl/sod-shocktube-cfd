@@ -60,6 +60,10 @@ python run_simulation.py --schemes lax_friedrichs upwind roe
 # 指定边界条件类型 (v1.5.0+)
 python run_simulation.py --bc reflective
 
+# 使用 JSON 配置文件 (v1.7.0+)
+python run_simulation.py --config config/simulation_config.json
+python run_simulation.py --config-json config/simulation_config_custom_sod.json
+
 # 自定义初始条件 (v1.5.0+)
 python run_simulation.py --left_rho 2.0 --left_p 2.0 --right_rho 0.25 --right_p 0.2
 ```
@@ -90,7 +94,7 @@ python -m pytest tests/ -v
 
 ## 边界条件
 
-支持 4 种边界条件类型，通过 CLI 参数 `--bc` 或 YAML 配置 `boundary_type` 选择：
+支持 4 种边界条件类型，通过 CLI 参数 `--bc` 或配置文件 (YAML/JSON) 中的 `boundary_type` 选择：
 
 | 类型 | CLI 值 | 行为 | 适用场景 |
 |------|--------|------|----------|
@@ -135,13 +139,20 @@ sod-shocktube-cfd/
 │   ├── exact_solver.py           # Riemann 精确解 (Toro 2009)
 │   ├── output_writer.py          # 结果数据输出
 │   └── validator.py              # 误差计算与可视化
-├── tests/                        # 单元测试 (39 项)
+├── tests/                        # 单元测试 (99 项)
 │   ├── test_mesh.py
 │   ├── test_initialization.py
 │   ├── test_boundary.py
-│   └── test_fd_schemes.py
+│   ├── test_fd_schemes.py
+│   ├── test_time_marcher.py
+│   ├── test_exact_solver.py
+│   ├── test_integration.py
+│   └── test_config.py
 ├── config/
-│   └── simulation_config.yaml    # 仿真参数配置
+│   ├── simulation_config.yaml            # YAML 仿真参数配置
+│   ├── simulation_config.json            # JSON 仿真参数配置
+│   ├── simulation_config_custom_sod.json # 自定义初始条件 JSON 配置
+│   └── simulation_config_high_res.json   # 高分辨率 JSON 配置
 ├── docs/                         # 项目文档与结果图片
 ├── results/                      # 仿真结果归档
 ├── .github/workflows/ci.yml      # CI 持续集成
@@ -158,6 +169,10 @@ sod-shocktube-cfd/
 ---
 
 ## 配置文件
+
+支持 **YAML** 和 **JSON** 两种格式，通过 `load_any_config()` 自动检测文件类型。
+
+### YAML 格式
 
 编辑 `config/simulation_config.yaml`:
 
@@ -189,6 +204,55 @@ schemes:
   - hllc
   - tvd_minmod
 ```
+
+### JSON 格式 (v1.7.0+)
+
+等效的 `config/simulation_config.json`:
+
+```json
+{
+  "mesh": {"n_points": 100, "x_left": 0.0, "x_right": 1.0},
+  "physics": {
+    "gamma": 1.4, "diaphragm_pos": 0.5,
+    "left_state": {"rho": 1.0, "u": 0.0, "p": 1.0},
+    "right_state": {"rho": 0.125, "u": 0.0, "p": 0.1}
+  },
+  "simulation": {"t_final": 0.2, "cfl": 0.8, "boundary_type": "zero_gradient"},
+  "schemes": ["lax_friedrichs", "lax_wendroff", "macormack", "upwind",
+              "rusanov", "godunov", "roe", "hllc", "tvd_minmod"],
+  "output": {
+    "data_dir": "results/data", "exact_dir": "results/exact",
+    "figures_dir": "results/figures", "error_report": "results/error_report.csv"
+  }
+}
+```
+
+### 使用方式
+
+```bash
+# YAML 配置 (默认)
+python run_simulation.py --config config/simulation_config.yaml
+
+# JSON 配置
+python run_simulation.py --config config/simulation_config.json
+python run_simulation.py --config-json config/simulation_config_custom_sod.json
+
+# 自动格式检测 (.yaml / .yml / .json)
+python run_simulation.py --config my_config.json
+```
+
+### 参数验证
+
+配置文件加载时自动验证参数合法性 (`validate_config()`):
+
+| 参数 | 约束 |
+|------|------|
+| `mesh.n_points` | ≥ 10 的整数 |
+| `physics.gamma` | (0.1, 5.0] |
+| `simulation.cfl` | [0.01, 1.0] |
+| `simulation.t_final` | [0.001, 10.0] |
+| `simulation.boundary_type` | zero_gradient / reflective / periodic / transmissive |
+| `schemes` | 非空列表，每个值必须在 9 种已注册格式中 |
 
 ---
 

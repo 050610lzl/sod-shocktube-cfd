@@ -148,7 +148,7 @@ sod_shocktube_fdm/
 | Python | ≥ 3.8 | 推荐Python 3.10+ |
 | NumPy | ≥ 1.21 | 数组运算与线性代数 |
 | Matplotlib | ≥ 3.5 | 结果可视化 |
-| PyYAML | ≥ 6.0 | 配置文件解析 |
+| PyYAML | ≥ 6.0 | YAML 配置文件解析 (JSON 使用标准库 json) |
 | SciPy | ≥ 1.7 | 精确解求解辅助（非线性方程求解） |
 
 **依赖清单文件**（`requirements.txt`）内容规范：
@@ -170,7 +170,7 @@ scipy>=1.7.0
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  步骤1: 配置加载                                                 │
-│  ↓ 读取config/simulation_config.yaml，获取CFL、网格、终止时间等   │
+│  ↓ 读取配置文件（YAML/JSON，load_any_config 自动检测格式）   │
 │                                                                 │
 │  步骤2: 网格生成                                                 │
 │  ↓ 调用mesh_generator，生成一维均匀网格                          │
@@ -645,7 +645,7 @@ $$L_2\text{误差} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}\left(\phi_i^{\text{num}} - 
 | 交付物 | 说明 | 存放位置 |
 |--------|------|---------|
 | 完整项目代码 | 包含所有模块的Python源代码 | `src/` |
-| 配置文件 | 仿真参数配置YAML文件 | `config/` |
+| 配置文件 | 仿真参数配置文件（YAML/JSON） | `config/` |
 | 依赖清单 | Python依赖包及版本要求 | `requirements.txt` |
 | 主程序入口 | 流程编排脚本 | `run_simulation.py` |
 | 单元测试 | 各模块功能测试脚本 | `tests/` |

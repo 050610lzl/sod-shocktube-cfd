@@ -49,7 +49,10 @@
 
 | 序号 | 文件名 | 路径 | 说明 | 状态 |
 |:----:|--------|------|------|:----:|
-| 21 | `simulation_config.yaml` | `config/simulation_config.yaml` | 仿真参数YAML配置文件 | [x] 已交付 |
+| 21 | `simulation_config.yaml` | `config/simulation_config.yaml` | 仿真参数 YAML 配置文件 | [x] 已交付 |
+| 22 | `simulation_config.json` | `config/simulation_config.json` | 仿真参数 JSON 配置文件 (v1.7.0+) | [x] 已交付 |
+| 23 | `simulation_config_custom_sod.json` | `config/simulation_config_custom_sod.json` | 自定义初始条件 JSON 配置 | [x] 已交付 |
+| 24 | `simulation_config_high_res.json` | `config/simulation_config_high_res.json` | 高分辨率 JSON 配置 | [x] 已交付 |
 
 ---
 
@@ -143,7 +146,7 @@
 |------|:----:|:----:|
 | 源码文件 | 11 | 全部交付 |
 | 测试文件 | 7 | 全部交付 |
-| 配置文件 | 1 | 已交付 |
+| 配置文件 | 4 | 已交付 |
 | 项目根文件 | 8 | 全部交付 |
 | CI/CD 配置 | 1 | 已交付 |
 | 规划构建文档 | 2 | 已交付 |
