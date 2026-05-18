@@ -254,6 +254,8 @@ python run_simulation.py --left_p 3.0 --right_p 0.05 --bc reflective --scheme tv
 本项目支持 **YAML** 和 **JSON** 两种配置文件格式，通过 `load_any_config()` 自动检测文件扩展名。
 配置文件加载时自动执行参数合法性验证 (`validate_config()`)。
 
+> 完整的 JSON 配置教程（含 Schema 参考、自定义场景示例、YAML ↔ JSON 迁移指南）请参阅 [`06_json_config_guide.md`](06_json_config_guide.md)。
+
 ### 5.1 配置文件位置
 
 - YAML: `config/simulation_config.yaml`（默认）

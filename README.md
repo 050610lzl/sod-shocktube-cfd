@@ -170,7 +170,7 @@ sod-shocktube-cfd/
 
 ## 配置文件
 
-支持 **YAML** 和 **JSON** 两种格式，通过 `load_any_config()` 自动检测文件类型。
+支持 **YAML** 和 **JSON** 两种格式，通过 `load_any_config()` 自动检测文件类型。完整 JSON 配置指南参见 [`docs/06_user_guide/06_json_config_guide.md`](docs/06_user_guide/06_json_config_guide.md)。
 
 ### YAML 格式
 
