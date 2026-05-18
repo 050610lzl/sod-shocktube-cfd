@@ -16,8 +16,9 @@
 
 import argparse
 import os
-import subprocess
+import re
 import sys
+import subprocess
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -43,12 +44,16 @@ def write_version(major, minor, patch, dry_run=False):
     new_version = f"{major}.{minor}.{patch}"
     if dry_run:
         print(f"[DRY-RUN] 将写入 VERSION 文件: {new_version}")
+        _sync_pyproject_toml(new_version, dry_run)
+        _sync_readme_badge(new_version, dry_run)
+        create_git_tag(new_version, dry_run)
         return new_version
     with open(VERSION_FILE, 'w', newline='\n', encoding='utf-8') as f:
         f.write(new_version + "\n")
     print(f"VERSION 文件已更新: {new_version}")
     _sync_pyproject_toml(new_version, dry_run)
     _sync_readme_badge(new_version, dry_run)
+    create_git_tag(new_version, dry_run)
     return new_version
 
 
